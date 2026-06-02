@@ -223,7 +223,7 @@ tbody tr:hover td{background:var(--accent-l);}
         <div class="ta"><button class="btn bg bsm" onclick="refreshDash()">↻ Refresh</button></div>
       </div>
       <div class="sr">
-        <div class="sc bl"><div class="si">📦</div><div class="sl2">Total SKUs</div><div class="sv" id="s-total">—</div></div>
+        <div class="sc bl"><div class="si">📦</div><div class="sl2">Total Items</div><div class="sv" id="s-total">—</div></div>
         <div class="sc rd"><div class="si">⚠️</div><div class="sl2">Reorder Required</div><div class="sv" id="s-ro">—</div></div>
         <div class="sc gn"><div class="si">📥</div><div class="sl2">Today Inward</div><div class="sv" id="s-in">—</div></div>
         <div class="sc or"><div class="si">📤</div><div class="sl2">Today Outward</div><div class="sv" id="s-out">—</div></div>
@@ -237,9 +237,9 @@ tbody tr:hover td{background:var(--accent-l);}
     <!-- ITEMS -->
     <div class="page" id="page-items">
       <div class="tb">
-        <div class="pt"><h1>Item Master</h1><p>All SKUs, stock levels & parameters</p></div>
+        <div class="pt"><h1>Item Master</h1><p>All items, stock levels & parameters</p></div>
         <div class="ta">
-          <input class="inp" id="item-search" placeholder="🔍 Search SKU / Name..." style="width:190px;" oninput="filterItems()">
+          <input class="inp" id="item-search" placeholder="🔍 Search Item..." style="width:190px;" oninput="filterItems()">
           <select class="inp" id="item-cf" onchange="filterItems()" style="width:145px;">
             <option value="">All Categories</option>
             <option value="Raw Material">Raw Material</option>
@@ -374,7 +374,7 @@ tbody tr:hover td{background:var(--accent-l);}
 </div>
 
 <script>
-var API_URL=localStorage.getItem('lpx_api')||'https://script.google.com/macros/s/AKfycbxIA0pWbifE6MsuKozQAsOMOKPZkR51plpfIHh4mOZIY6gsV4Mh-uJSnjt7QroSwIlE/exec';
+var API_URL=localStorage.getItem('lpx_api')||'https://script.google.com/macros/s/AKfycbzssS9yQF6fzGp4YNL-E73qt5tqBNJ1AYQaZl-PvGxLEmZ5x2SfFuy9r211S18g9fDM/exec';
 var DEMO=false;
 var _items=[];var _txnType='IN';var _dStocks=[];var _clRows=[];var _clDate='';
 
