@@ -358,9 +358,7 @@
         <div class="fi"><label class="inp-label">Unit</label><input class="inp" id="f-unit" placeholder="Pcs / Kg / Metres"></div>
         <div class="fi"><label class="inp-label">Avg Daily Consumption (ADC)</label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
         <div class="fi"><label class="inp-label">Lead Time (Days)</label><input class="inp" id="f-lt" type="number" min="0" placeholder="0" oninput="updROP()"></div>
-        <div class="fi"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"><div class="hint">Buffer multiplier e.g. 1.2</div></div>
-        <div class="fi"><label class="inp-label">MOQ</label><input class="inp" id="f-moq" type="number" min="0" placeholder="0"></div>
-        <div class="fi"><label class="inp-label">Max Level</label><input class="inp" id="f-max" type="number" min="0" placeholder="0"></div>
+        <div class="fi full"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"><div class="hint">Buffer multiplier e.g. 1.2 — MOQ aur Max Level auto calculate honge</div></div>
         <div class="fi full"><label class="inp-label">Material In Transit</label><input class="inp" id="f-mit" type="number" min="0" placeholder="0"><div class="hint">Already ordered but not received</div></div>
         <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="f-remarks" placeholder="Optional"></div>
       </div>
