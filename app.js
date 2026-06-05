@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbxcYTXbqLVPgObjy2vR5-7ekOO0qQAGrI5EYgmlVkN1jxqbJWxX4W3ZJAKvey5CV_X6/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwQd40WksTsQttiQqY1fQP8eYlG1pMeBjtzGVPxW7F_tbmeI0V043wi7s98X7gJTqjM/exec';
 
 const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Cathodic Wing','Future Cell','Phoenix Wing','Other'];
 
@@ -890,6 +890,136 @@ async function genClosing() {
     </table></div></div>`;
     document.getElementById('cl-content').innerHTML = html;
   } catch(e) { toast(e.message, 'err'); }
+}
+
+// ── CLOSING TAB SWITCH ──
+function switchClTab(tab) {
+  const single = document.getElementById('cl-single-wrap');
+  const range  = document.getElementById('cl-range-wrap');
+  const btnS   = document.getElementById('cl-tab-single');
+  const btnR   = document.getElementById('cl-tab-range');
+
+  if (tab === 'single') {
+    single.style.display = 'block';
+    range.style.display  = 'none';
+    btnS.style.borderColor = 'var(--accent)'; btnS.style.color = 'var(--accent)';
+    btnR.style.borderColor = ''; btnR.style.color = '';
+  } else {
+    single.style.display = 'none';
+    range.style.display  = 'block';
+    btnR.style.borderColor = 'var(--accent)'; btnR.style.color = 'var(--accent)';
+    btnS.style.borderColor = ''; btnS.style.color = '';
+    // Default last 7 days
+    const t = new Date();
+    const f = new Date(t); f.setDate(f.getDate() - 6);
+    document.getElementById('cl-to').value   = t.toISOString().slice(0,10);
+    document.getElementById('cl-from').value = f.toISOString().slice(0,10);
+  }
+}
+
+// ── CLOSING HISTORY ──
+let _historyData = [];
+
+async function genHistory() {
+  const from = document.getElementById('cl-from').value;
+  const to   = document.getElementById('cl-to').value;
+  if (!from || !to) { toast('Date range select karo', 'err'); return; }
+  if (from > to)    { toast('From date To se pehle honi chahiye', 'err'); return; }
+
+  const wrap = document.getElementById('cl-history-content');
+  wrap.innerHTML = `<div class="empty"><div class="ei">⏳</div><div class="et">Loading history...</div></div>`;
+
+  try {
+    const data = await api('getClosingHistory', { from, to });
+    _historyData = data;
+
+    if (!data.length) {
+      wrap.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No snapshots found</div><div class="es">Pehle Daily Closing save karo</div></div>`;
+      return;
+    }
+
+    // Summary bar
+    const totalDays = data.length;
+    const totalIn   = data.reduce((s,d) => s + d.totalIn,  0);
+    const totalOut  = data.reduce((s,d) => s + d.totalOut, 0);
+
+    let html = `
+      <div class="cl-sum" style="margin-bottom:16px;">
+        <div class="sc bl"><div class="sc-bar"></div><div class="sc-icon">📅</div><div class="sc-label">Days</div><div class="sc-val">${totalDays}</div></div>
+        <div class="sc gn"><div class="sc-bar"></div><div class="sc-icon">📥</div><div class="sc-label">Total Inward</div><div class="sc-val">${totalIn}</div></div>
+        <div class="sc rd"><div class="sc-bar"></div><div class="sc-icon">📤</div><div class="sc-label">Total Outward</div><div class="sc-val">${totalOut}</div></div>
+      </div>`;
+
+    // Day-wise accordion
+    data.forEach(day => {
+      html += `
+        <div class="card" style="margin-bottom:10px;">
+          <div class="ch" style="cursor:pointer;" onclick="toggleDay('day-${day.date}')">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <h2>📅 ${fmtD(day.date)}</h2>
+              <span style="font-size:11px;color:var(--muted);">IN: <b style="color:var(--green);">+${day.totalIn}</b> &nbsp; OUT: <b style="color:var(--red);">-${day.totalOut}</b></span>
+              ${day.alerts > 0 ? `<span class="badge b-ro">⚠ ${day.alerts} alerts</span>` : '<span class="badge b-ok">✓ All OK</span>'}
+            </div>
+            <span style="color:var(--muted);font-size:13px;" id="arrow-${day.date}">▼</span>
+          </div>
+          <div id="day-${day.date}" style="display:none;">
+            <div class="tw">
+              <table>
+                <thead><tr>
+                  <th>Item</th><th>Unit</th><th>Opening</th>
+                  <th>IN</th><th>OUT</th><th>Closing</th>
+                  <th>ROP</th><th>Status</th>
+                </tr></thead>
+                <tbody>
+                  ${day.rows.map(r => `<tr>
+                    <td style="font-weight:600;">${r.name}</td>
+                    <td style="color:var(--muted);font-size:12px;">${r.unit||'—'}</td>
+                    <td style="font-family:var(--mono);">${r.opening}</td>
+                    <td style="font-family:var(--mono);color:var(--green);font-weight:600;">${r.todayIn > 0 ? '+'+r.todayIn : '—'}</td>
+                    <td style="font-family:var(--mono);color:var(--red);font-weight:600;">${r.todayOut > 0 ? '-'+r.todayOut : '—'}</td>
+                    <td style="font-family:var(--mono);font-weight:700;font-size:15px;">${r.closing}</td>
+                    <td style="font-family:var(--mono);color:var(--orange);">${r.reorderPoint}</td>
+                    <td>${stBadge(r.status)}</td>
+                  </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>`;
+    });
+
+    wrap.innerHTML = html;
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+function toggleDay(id) {
+  const el  = document.getElementById(id);
+  const date = id.replace('day-', '');
+  const arr = document.getElementById('arrow-' + date);
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    if (arr) arr.textContent = '▲';
+  } else {
+    el.style.display = 'none';
+    if (arr) arr.textContent = '▼';
+  }
+}
+
+function exportHistoryCSV() {
+  if (!_historyData.length) { toast('Pehle history load karo', 'warn'); return; }
+  let csv = 'Date,Item Name,Category,Unit,Opening,Today IN,Today OUT,Closing,ROP,Status
+';
+  _historyData.forEach(day => {
+    day.rows.forEach(r => {
+      csv += `${r.date},"${r.name}",${r.cat},${r.unit},${r.opening},${r.todayIn},${r.todayOut},${r.closing},${r.reorderPoint},${r.status}
+`;
+    });
+  });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `Litpax_History_${document.getElementById('cl-from').value}_to_${document.getElementById('cl-to').value}.csv`;
+  a.click();
+  toast('CSV downloaded ✓', 'ok');
 }
 
 async function saveSnapshot() {
