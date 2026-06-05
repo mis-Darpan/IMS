@@ -1007,12 +1007,10 @@ function toggleDay(id) {
 
 function exportHistoryCSV() {
   if (!_historyData.length) { toast('Pehle history load karo', 'warn'); return; }
-  let csv = 'Date,Item Name,Category,Unit,Opening,Today IN,Today OUT,Closing,ROP,Status
-';
+  let csv = 'Date,Item Name,Category,Unit,Opening,Today IN,Today OUT,Closing,ROP,Status\n';
   _historyData.forEach(day => {
     day.rows.forEach(r => {
-      csv += `${r.date},"${r.name}",${r.cat},${r.unit},${r.opening},${r.todayIn},${r.todayOut},${r.closing},${r.reorderPoint},${r.status}
-`;
+      csv += `${r.date},"${r.name}",${r.cat},${r.unit},${r.opening},${r.todayIn},${r.todayOut},${r.closing},${r.reorderPoint},${r.status}\n`;
     });
   });
   const a = document.createElement('a');
