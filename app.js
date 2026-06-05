@@ -153,6 +153,46 @@ async function loadDash() {
         </div>`).join('');
     }
 
+    // Store Live Stock
+    const storeWrap = document.getElementById('d-store');
+    if (storeWrap) {
+      if (!d.stocks || !d.stocks.length) {
+        storeWrap.innerHTML = `<div class="empty"><div class="ei">📦</div><div class="et">No items</div></div>`;
+      } else {
+        storeWrap.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">
+          <thead><tr>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Item</th>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Unit</th>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Store Stock</th>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">WIP</th>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">ROP</th>
+            <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Status</th>
+          </tr></thead>
+          <tbody>
+            ${d.stocks.map(s => {
+              const pct = s.maxL > 0 ? Math.min(100, Math.round(s.currentStock / s.maxL * 100)) : 0;
+              const bc  = s.status === 'OK' ? 'var(--green)' : s.status === 'Reorder' ? 'var(--orange)' : 'var(--red)';
+              return `<tr>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;color:var(--navy);font-size:13px;">${s.name}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
+                  <span style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--navy);">${s.currentStock}</span>
+                  <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;">
+                    <div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div>
+                  </div>
+                </td>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
+                  ${s.wip > 0 ? `<span style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--purple);">${s.wip}</span>` : '<span style="color:var(--light);">—</span>'}
+                </td>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--orange);font-weight:600;">${s.reorderPoint}</td>
+                <td style="padding:10px 14px;border-bottom:1px solid var(--border);">${stBadge(s.status)}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table></div>`;
+      }
+    }
+
     // WIP Section
     const wipWrap = document.getElementById('d-wip');
     if (wipWrap) {
