@@ -320,20 +320,28 @@
     <!-- STOCK SUMMARY -->
     <div class="page" id="page-stock">
       <div class="tb">
-        <div class="pt"><h1>Stock Summary</h1><p>Live stock — sabhi items ka current balance</p></div>
+        <div class="pt"><h1>Stock Summary</h1><p>Category → Brand → Model — Live stock</p></div>
         <div class="ta">
           <input class="inp" id="stock-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterStock()">
-          <select class="inp" id="stock-status-f" style="width:130px;" onchange="filterStock()">
+          <select class="inp" id="stock-cat-f" style="width:140px;" onchange="filterStock()">
+            <option value="">All Categories</option>
+            <option>BMS</option><option>Cells</option><option>Charger</option>
+            <option>Wire</option><option>Nickel</option><option>Consumable</option>
+            <option>Packaging</option><option>Other</option>
+          </select>
+          <select class="inp" id="stock-status-f" style="width:120px;" onchange="filterStock()">
             <option value="">All Status</option>
             <option>Critical</option><option>Reorder</option><option>OK</option>
           </select>
           <button class="btn bg bsm" onclick="loadStock()">↻ Refresh</button>
+          <button class="btn bg bsm" onclick="toggleStockView()" id="stock-view-btn">🌳 Tree View</button>
         </div>
       </div>
-      <div class="card">
+      <div id="stock-tree" style="display:none;"></div>
+      <div class="card" id="stock-table-wrap">
         <div class="tw">
           <table>
-            <thead><tr><th>Item Name</th><th>Category</th><th>Unit</th><th>ROP</th><th>Max</th><th>MIT</th><th>Current Stock</th><th>Order Qty</th><th>Status</th></tr></thead>
+            <thead><tr><th>Item Name</th><th>Category</th><th>Brand</th><th>Unit</th><th>ROP</th><th>MIT</th><th>Current Stock</th><th>Order Qty</th><th>Status</th></tr></thead>
             <tbody id="stock-tb"><tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr></tbody>
           </table>
         </div>
