@@ -708,7 +708,16 @@ async function openBomEdit(bomName) {
   document.getElementById('bom-edit-title').textContent = `Edit BOM: ${bomName}`;
   document.getElementById('bom-edit-modal').classList.add('open');
 
-  // Load existing items
+  // Ensure items are loaded first
+  if (!_items.length) {
+    try {
+      const d = await api('getDashboard');
+      _stocks = d.stocks || [];
+      _items  = _stocks;
+    } catch(e) {}
+  }
+
+  // Load existing BOM items
   try {
     const items = await api('getBomItems', { bomName });
     _bomRows = items.map(i => ({ component: i.component, qty: i.qty, unit: i.unit }));
