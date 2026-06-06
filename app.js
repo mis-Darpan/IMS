@@ -935,6 +935,142 @@ async function delBom(bomName) {
   } catch(e) { toast(e.message, 'err'); }
 }
 
+// ── STOCK TREE VIEW ──
+let _stockViewMode = 'table'; // 'table' or 'tree'
+
+function toggleStockView() {
+  _stockViewMode = _stockViewMode === 'table' ? 'tree' : 'table';
+  const btn = document.getElementById('stock-view-btn');
+  if (_stockViewMode === 'tree') {
+    btn.textContent = '📋 Table View';
+    document.getElementById('stock-table-wrap').style.display = 'none';
+    document.getElementById('stock-tree').style.display = 'block';
+    renderStockTree(_stocks);
+  } else {
+    btn.textContent = '🌳 Tree View';
+    document.getElementById('stock-table-wrap').style.display = 'block';
+    document.getElementById('stock-tree').style.display = 'none';
+    filterStock();
+  }
+}
+
+function parseBrand(item) {
+  // Extract brand from item name — second word is brand
+  // e.g. "BMS JK 24S 40Amp" → brand = "JK"
+  // e.g. "Cells DMEGC 18650" → brand = "DMEGC"
+  const parts = item.name.split(' ');
+  if (parts.length >= 2) return parts[1];
+  return item.cat || 'Other';
+}
+
+function renderStockTree(stocks) {
+  const wrap = document.getElementById('stock-tree');
+  if (!stocks || !stocks.length) {
+    wrap.innerHTML = `<div class="empty"><div class="ei">📈</div><div class="et">No data</div></div>`;
+    return;
+  }
+
+  // Group by Category → Brand → Models
+  const tree = {};
+  stocks.forEach(s => {
+    const cat   = s.cat || 'Other';
+    const brand = parseBrand(s);
+    if (!tree[cat]) tree[cat] = {};
+    if (!tree[cat][brand]) tree[cat][brand] = [];
+    tree[cat][brand].push(s);
+  });
+
+  let html = '';
+  Object.keys(tree).sort().forEach(cat => {
+    const brands = tree[cat];
+    const catTotal = Object.values(brands).flat().reduce((s,i) => s + i.currentStock, 0);
+    const catAlerts = Object.values(brands).flat().filter(i => i.status !== 'OK').length;
+    const catItems  = Object.values(brands).flat().length;
+
+    html += `<div class="tree-cat">
+      <div class="tree-cat-header" onclick="toggleTree('cat-${cat}')">
+        <div class="tree-cat-title">
+          <span style="font-size:16px;">${getCatIcon(cat)}</span>
+          <h3>${cat}</h3>
+          <span class="tree-cat-count">${catItems} models</span>
+          ${catAlerts > 0 ? `<span class="badge b-ro">⚠ ${catAlerts}</span>` : '<span class="badge b-ok">✓ OK</span>'}
+        </div>
+        <div class="tree-cat-meta">
+          <span class="tree-cat-stock">${catTotal} total</span>
+          <span class="tree-arrow" id="arr-cat-${cat}">▼</span>
+        </div>
+      </div>
+      <div id="cat-${cat}" style="display:none;">`;
+
+    Object.keys(brands).sort().forEach(brand => {
+      const models = brands[brand];
+      const brandTotal = models.reduce((s,i) => s + i.currentStock, 0);
+      const brandAlerts = models.filter(i => i.status !== 'OK').length;
+
+      html += `<div class="tree-brand">
+        <div class="tree-brand-header" onclick="toggleTree('brand-${cat}-${brand}')">
+          <div class="tree-brand-title">
+            <span style="font-size:13px;">🏷</span>
+            <h4>${brand}</h4>
+            <span style="font-size:11px;color:var(--muted);">${models.length} models</span>
+            ${brandAlerts > 0 ? `<span class="badge b-ro" style="font-size:9px;">⚠ ${brandAlerts}</span>` : ''}
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="tree-brand-stock">${brandTotal}</span>
+            <span class="tree-arrow" id="arr-brand-${cat}-${brand}">▼</span>
+          </div>
+        </div>
+        <div id="brand-${cat}-${brand}" style="display:none;">
+          <div class="tree-model-headers">
+            <span>Model</span><span>Unit</span><span>ROP</span><span>MIT</span><span>Stock</span><span>Status</span>
+          </div>
+          <div class="tree-models">
+            ${models.map(m => {
+              const pct = m.maxL > 0 ? Math.min(100, Math.round(m.currentStock/m.maxL*100)) : 0;
+              const bc = m.status==='OK' ? 'var(--green)' : m.status==='Reorder' ? 'var(--orange)' : 'var(--red)';
+              return `<div class="tree-model-row">
+                <span class="tree-model-name">${m.name}</span>
+                <span style="color:var(--muted);">${m.unit||'—'}</span>
+                <span style="font-family:var(--mono);color:var(--orange);">${m.reorderPoint}</span>
+                <span style="font-family:var(--mono);color:var(--purple);">${m.mit||0}</span>
+                <span>
+                  <span style="font-family:var(--mono);font-weight:700;font-size:14px;">${m.currentStock}</span>
+                  <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;width:60px;">
+                    <div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div>
+                  </div>
+                </span>
+                <span>${stBadge(m.status)}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  });
+
+  wrap.innerHTML = html;
+}
+
+function toggleTree(id) {
+  const el = document.getElementById(id);
+  const arr = document.getElementById('arr-' + id);
+  if (!el) return;
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    if (arr) arr.classList.add('open');
+  } else {
+    el.style.display = 'none';
+    if (arr) arr.classList.remove('open');
+  }
+}
+
+function getCatIcon(cat) {
+  const icons = { 'BMS':'⚡', 'Cells':'🔋', 'Charger':'🔌', 'Wire':'🔩', 'Nickel':'🪙', 'Consumable':'🧰', 'Packaging':'📦', 'Other':'➕' };
+  return icons[cat] || '📦';
+}
+
 // ── STOCK SUMMARY ──
 async function loadStock() {
   document.getElementById('stock-tb').innerHTML = `<tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr>`;
@@ -944,25 +1080,32 @@ async function loadStock() {
   } catch(e) { toast(e.message, 'err'); }
 }
 function filterStock() {
-  const s  = document.getElementById('stock-search').value.toLowerCase();
-  const sf = document.getElementById('stock-status-f').value;
-  const fl = _stocks.filter(i =>
-    (!s  || i.name.toLowerCase().includes(s)) &&
-    (!sf || i.status === sf)
+  const s   = document.getElementById('stock-search').value.toLowerCase();
+  const sf  = document.getElementById('stock-status-f').value;
+  const scf = document.getElementById('stock-cat-f').value;
+  const fl  = _stocks.filter(i =>
+    (!s   || i.name.toLowerCase().includes(s)) &&
+    (!sf  || i.status === sf) &&
+    (!scf || i.cat === scf)
   );
   const tb = document.getElementById('stock-tb');
   const em = document.getElementById('stock-empty');
   if (!fl.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
   em.style.display = 'none';
+
+  // Update tree if visible
+  if (_stockViewMode === 'tree') { renderStockTree(fl); return; }
+
   tb.innerHTML = fl.map(item => {
+    const brand = parseBrand(item);
     const pct = item.maxL > 0 ? Math.min(100, Math.round(item.currentStock / item.maxL * 100)) : 0;
     const bc  = item.status === 'OK' ? 'var(--green)' : item.status === 'Reorder' ? 'var(--orange)' : 'var(--red)';
     return `<tr>
-      <td style="font-weight:600;">${item.name}</td>
+      <td style="font-weight:600;color:var(--navy);">${item.name}</td>
       <td>${catBadge(item.cat)}</td>
+      <td><span style="font-size:11px;font-weight:600;color:var(--teal);">${brand}</span></td>
       <td style="color:var(--muted);font-size:12px;">${item.unit || '—'}</td>
       <td style="font-family:var(--mono);color:var(--orange);font-weight:600;">${item.reorderPoint}</td>
-      <td style="font-family:var(--mono);">${item.maxL || 0}</td>
       <td>${(item.mit||0) > 0 ? `<span style="font-family:var(--mono);color:var(--purple);">🚚${item.mit}</span>` : '—'}</td>
       <td>
         <span style="font-family:var(--mono);font-weight:700;font-size:16px;">${item.currentStock}</span>
