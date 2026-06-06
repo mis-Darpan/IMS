@@ -583,27 +583,144 @@ function filterItems() {
   }).join('');
 }
 
+// ── CATEGORY / BRAND CONFIG ──
+const CAT_BRANDS = {
+  'BMS':        ['JK', 'JBD', 'Daly', 'AIS', 'Pace', 'Other'],
+  'Cells':      ['DMEGC', 'EVE', 'BAK', 'LG', 'HLY', 'CATL', 'Other'],
+  'Charger':    ['Generic', 'Litpax', 'Other'],
+  'Wire':       ['Copper', 'Silicon', 'Other'],
+  'Nickel':     ['Pure', 'Coated', 'Other'],
+  'Consumable': ['—'],
+  'Packaging':  ['—'],
+  'Other':      ['—'],
+};
+const CAT_UNITS = {
+  'BMS': 'Pcs', 'Cells': 'Pcs', 'Charger': 'Pcs',
+  'Wire': 'Metres', 'Nickel': 'Kg',
+  'Consumable': 'Pcs', 'Packaging': 'Pcs', 'Other': 'Pcs',
+};
+
+let _selCat = '', _selBrand = '';
+
+function selectCat(cat) {
+  _selCat = cat; _selBrand = '';
+  // Update cat buttons
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const brands = CAT_BRANDS[cat] || ['Other'];
+  const brandGrid = document.getElementById('brand-grid');
+  const brandCustom = document.getElementById('f-brand-custom');
+
+  if (brands.length === 1 && brands[0] === '—') {
+    // No brand needed - skip to model
+    document.getElementById('brand-section').style.display = 'none';
+    document.getElementById('model-section').style.display = 'block';
+    document.getElementById('item-details').style.display = 'block';
+    // Set default unit
+    const unitSel = document.getElementById('f-unit');
+    if (unitSel) unitSel.value = CAT_UNITS[cat] || 'Pcs';
+    _selBrand = cat;
+    updItemName();
+  } else {
+    brandGrid.innerHTML = brands.map(b =>
+      `<button type="button" class="brand-btn" onclick="selectBrand('${b}')">${b}</button>`
+    ).join('');
+    brandCustom.style.display = 'none';
+    document.getElementById('brand-section').style.display = 'block';
+    document.getElementById('model-section').style.display = 'none';
+    document.getElementById('item-details').style.display = 'none';
+    document.getElementById('name-preview').style.display = 'none';
+  }
+}
+
+function selectBrand(brand) {
+  _selBrand = brand;
+  document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const brandCustom = document.getElementById('f-brand-custom');
+  if (brand === 'Other') {
+    brandCustom.style.display = 'block';
+    brandCustom.focus();
+  } else {
+    brandCustom.style.display = 'none';
+  }
+
+  document.getElementById('model-section').style.display = 'block';
+  document.getElementById('item-details').style.display = 'block';
+  // Set default unit
+  const unitSel = document.getElementById('f-unit');
+  if (unitSel) unitSel.value = CAT_UNITS[_selCat] || 'Pcs';
+  updROP();
+  updItemName();
+}
+
+function updItemName() {
+  const brand = _selBrand === 'Other'
+    ? (document.getElementById('f-brand-custom').value.trim() || 'Other')
+    : _selBrand;
+  const model = (document.getElementById('f-model').value || '').trim();
+
+  let name = '';
+  if (['Consumable','Packaging','Other'].includes(_selCat)) {
+    name = model || _selCat;
+  } else {
+    name = [_selCat, brand, model].filter(Boolean).join(' ');
+  }
+
+  const preview = document.getElementById('f-name-preview');
+  const nameInput = document.getElementById('f-name');
+  const namePreviewDiv = document.getElementById('name-preview');
+
+  if (name && model) {
+    preview.textContent = name;
+    if (nameInput) nameInput.value = name;
+    namePreviewDiv.style.display = 'block';
+  } else {
+    namePreviewDiv.style.display = 'none';
+  }
+}
+
 function openItemModal(name) {
   _editItemName = name || null;
+  _selCat = ''; _selBrand = '';
+
   if (name) {
+    // Edit mode — show simple form
     const item = _items.find(i => i.name === name);
     if (!item) return;
     document.getElementById('im-title').textContent = 'Edit Item';
-    document.getElementById('f-name').value    = item.name;
-    document.getElementById('f-cat').value     = item.cat;
-    document.getElementById('f-unit').value    = item.unit || '';
-    document.getElementById('f-adc').value     = item.adc || 0;
-    document.getElementById('f-lt').value      = item.lt || 0;
-    document.getElementById('f-sf').value      = item.sf || 1.2;
-    document.getElementById('f-moq').value     = item.moq || 0;
-    document.getElementById('f-max').value     = item.maxL || 0;
-    document.getElementById('f-mit').value     = item.mit || 0;
+
+    // Hide step UI, show edit UI
+    document.getElementById('cat-grid').style.display = 'none';
+    document.getElementById('brand-section').style.display = 'none';
+    document.getElementById('model-section').style.display = 'none';
+    document.getElementById('name-preview').style.display = 'block';
+    document.getElementById('item-details').style.display = 'block';
+    document.getElementById('f-name-preview').textContent = item.name;
+    document.getElementById('f-name').value = item.name;
+    document.getElementById('f-unit').value  = item.unit || 'Pcs';
+    document.getElementById('f-adc').value   = item.adc || 0;
+    document.getElementById('f-lt').value    = item.lt || 0;
+    document.getElementById('f-sf').value    = item.sf || 1.2;
+    document.getElementById('f-mit').value   = item.mit || 0;
     document.getElementById('f-remarks').value = item.remarks || '';
   } else {
     document.getElementById('im-title').textContent = 'Add Item';
-    ['f-name','f-unit','f-adc','f-lt','f-mit','f-remarks'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('f-sf').value  = '1.2';
-    document.getElementById('f-cat').value = 'Raw Material';
+    // Reset all
+    document.getElementById('cat-grid').style.display = 'grid';
+    document.getElementById('brand-section').style.display = 'none';
+    document.getElementById('model-section').style.display = 'none';
+    document.getElementById('name-preview').style.display = 'none';
+    document.getElementById('item-details').style.display = 'none';
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('f-model').value   = '';
+    document.getElementById('f-adc').value     = '0';
+    document.getElementById('f-lt').value      = '0';
+    document.getElementById('f-sf').value      = '1.2';
+    document.getElementById('f-mit').value     = '0';
+    document.getElementById('f-remarks').value = '';
   }
   updROP();
   document.getElementById('item-modal').classList.add('open');
@@ -639,8 +756,8 @@ function updROP() {
 }
 
 async function saveItem() {
-  const name = document.getElementById('f-name').value.trim();
-  if (!name) { toast('Item Name required', 'err'); return; }
+  const name = (document.getElementById('f-name').value || '').trim();
+  if (!name) { toast('Pehle Category → Brand → Model select karo', 'err'); return; }
   const btn = document.getElementById('im-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   const adc = Number(document.getElementById('f-adc').value) || 0;
@@ -648,7 +765,7 @@ async function saveItem() {
   const sf  = Number(document.getElementById('f-sf').value)  || 1.2;
   const rop = Math.ceil(adc * lt * sf);
   const payload = {
-    name, cat: document.getElementById('f-cat').value,
+    name, cat: _selCat || _editItemName && (_items.find(i=>i.name===_editItemName)||{}).cat || 'Other',
     unit: document.getElementById('f-unit').value,
     adc, lt, sf,
     moq:  rop,
