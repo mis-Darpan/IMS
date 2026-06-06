@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Litpax IMS</title>
 <link rel="stylesheet" href="style.css">
+<style>
+.cat-btn {
+  padding: 10px 8px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: var(--s2); color: var(--t2); font-family: var(--sans);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s;
+  text-align: center;
+}
+.cat-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
+.cat-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+.brand-btn {
+  padding: 7px 14px; border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--s2); color: var(--t2); font-family: var(--sans);
+  font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.brand-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-l); }
+.brand-btn.active { border-color: var(--accent); background: var(--accent); color: #fff; }
+</style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
@@ -255,9 +272,16 @@
         <div class="pt"><h1>Items</h1><p>Raw materials, components — reorder settings</p></div>
         <div class="ta">
           <input class="inp" id="item-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterItems()">
-          <select class="inp" id="item-cat-f" style="width:140px;" onchange="filterItems()">
+          <select class="inp" id="item-cat-f" style="width:160px;" onchange="filterItems()">
             <option value="">All Categories</option>
-            <option>Raw Material</option><option>Consumable</option><option>Packaging</option>
+            <option>BMS</option>
+            <option>Cells</option>
+            <option>Charger</option>
+            <option>Wire</option>
+            <option>Nickel</option>
+            <option>Consumable</option>
+            <option>Packaging</option>
+            <option>Other</option>
           </select>
           <button class="btn bp" onclick="openItemModal()">+ Add Item</button>
         </div>
@@ -541,27 +565,72 @@
 
 <!-- ITEM MODAL -->
 <div class="ov" id="item-modal">
-  <div class="modal">
+  <div class="modal modal-lg">
     <div class="mh"><h2 id="im-title">Add Item</h2><button class="mclose" onclick="closeM('item-modal')">✕</button></div>
     <div class="mb">
-      <div class="fg">
-        <div class="fi full"><label class="inp-label">Item Name *</label><input class="inp" id="f-name" placeholder="e.g. LFP CELL 3.2V 32650"></div>
-        <div class="fi"><label class="inp-label">Category *</label>
-          <select class="inp" id="f-cat">
-            <option>Raw Material</option><option>Consumable</option><option>Packaging</option>
-          </select>
+
+      <!-- STEP 1: Category -->
+      <div style="margin-bottom:16px;">
+        <label class="inp-label">Step 1 — Category *</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;" id="cat-grid">
+          <button type="button" class="cat-btn" onclick="selectCat('BMS')">⚡ BMS</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Cells')">🔋 Cells</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Charger')">🔌 Charger</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Wire')">🔩 Wire</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Nickel')">🪙 Nickel</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Consumable')">🧰 Consumable</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Packaging')">📦 Packaging</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Other')">➕ Other</button>
         </div>
-        <div class="fi"><label class="inp-label">Unit</label><input class="inp" id="f-unit" placeholder="Pcs / Kg / Metres"></div>
-        <div class="fi"><label class="inp-label">Avg Daily Consumption (ADC)</label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
-        <div class="fi"><label class="inp-label">Lead Time (Days)</label><input class="inp" id="f-lt" type="number" min="0" placeholder="0" oninput="updROP()"></div>
-        <div class="fi full"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"><div class="hint">Buffer multiplier e.g. 1.2 — MOQ aur Max Level auto calculate honge</div></div>
-        <div class="fi full"><label class="inp-label">Material In Transit</label><input class="inp" id="f-mit" type="number" min="0" placeholder="0"><div class="hint">Already ordered but not received</div></div>
-        <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="f-remarks" placeholder="Optional"></div>
       </div>
-      <div class="rop-box">
-        <div class="rl">Reorder Point = ADC × Lead Time × Safety Factor</div>
-        <div class="rv" id="rop-prev">—</div>
+
+      <!-- STEP 2: Brand -->
+      <div id="brand-section" style="display:none;margin-bottom:16px;">
+        <label class="inp-label">Step 2 — Brand / Type *</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="brand-grid"></div>
+        <input class="inp" id="f-brand-custom" placeholder="Ya khud likhein..." style="margin-top:8px;display:none;" oninput="updItemName()">
       </div>
+
+      <!-- STEP 3: Model -->
+      <div id="model-section" style="display:none;margin-bottom:16px;">
+        <label class="inp-label">Step 3 — Model / Specification *</label>
+        <input class="inp" id="f-model" placeholder="e.g. 24S 40Amp, 100AH, 12.8V 5A..." oninput="updItemName()" style="margin-top:6px;">
+      </div>
+
+      <!-- AUTO NAME PREVIEW -->
+      <div id="name-preview" style="display:none;margin-bottom:16px;">
+        <div style="background:var(--accent-l);border:1px solid #c7d9ff;border-radius:8px;padding:10px 14px;">
+          <div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">Item Name (Auto)</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);" id="f-name-preview">—</div>
+          <input type="hidden" id="f-name">
+        </div>
+      </div>
+
+      <!-- ITEM DETAILS -->
+      <div id="item-details" style="display:none;">
+        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+        <div class="fg">
+          <div class="fi"><label class="inp-label">Unit</label>
+            <select class="inp" id="f-unit" oninput="updROP()">
+              <option value="Pcs">Pcs</option>
+              <option value="Kg">Kg</option>
+              <option value="Metres">Metres</option>
+              <option value="Roll">Roll</option>
+              <option value="Set">Set</option>
+            </select>
+          </div>
+          <div class="fi"><label class="inp-label">ADC <span style="font-weight:400;color:var(--muted);">(Daily use)</span></label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
+          <div class="fi"><label class="inp-label">Lead Time (Days)</label><input class="inp" id="f-lt" type="number" min="0" placeholder="0" oninput="updROP()"></div>
+          <div class="fi"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"></div>
+          <div class="fi full"><label class="inp-label">Material In Transit</label><input class="inp" id="f-mit" type="number" min="0" placeholder="0"></div>
+          <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="f-remarks" placeholder="Optional"></div>
+        </div>
+        <div class="rop-box" style="margin-top:14px;">
+          <div class="rl">Reorder Point = ADC × Lead Time × Safety Factor</div>
+          <div class="rv" id="rop-prev">—</div>
+        </div>
+      </div>
+
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('item-modal')">Cancel</button>
