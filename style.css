@@ -564,7 +564,7 @@ tbody tr:hover td { background: #f8faff; }
 .tree-models { border-top: 1px solid var(--border); }
 .tree-model-row {
   display: grid;
-  grid-template-columns: 1fr 70px 70px 70px 70px 100px 90px;
+  grid-template-columns: 1fr 60px 60px 60px 60px 90px 80px 90px;
   gap: 8px; align-items: center;
   padding: 8px 18px 8px 48px;
   border-bottom: 1px solid var(--border);
@@ -576,7 +576,7 @@ tbody tr:hover td { background: #f8faff; }
 .tree-model-name { font-weight: 500; color: var(--text); }
 .tree-model-headers {
   display: grid;
-  grid-template-columns: 1fr 70px 70px 70px 70px 100px 90px;
+  grid-template-columns: 1fr 60px 60px 60px 60px 90px 80px 90px;
   gap: 8px; padding: 6px 18px 6px 48px;
   background: #f3f5fb; border-bottom: 1px solid var(--border);
   font-size: 9px; font-weight: 700; color: var(--muted);
