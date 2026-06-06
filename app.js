@@ -1022,7 +1022,7 @@ function renderStockTree(stocks) {
         </div>
         <div id="brand-${cat}-${brand}" style="display:none;">
           <div class="tree-model-headers">
-            <span>Model</span><span>Unit</span><span>ROP</span><span>MIT</span><span>Stock</span><span>Status</span>
+            <span>Model</span><span>Unit</span><span>ROP</span><span>Max</span><span>MIT</span><span>Stock</span><span>Status</span>
           </div>
           <div class="tree-models">
             ${models.map(m => {
@@ -1032,6 +1032,7 @@ function renderStockTree(stocks) {
                 <span class="tree-model-name">${m.name}</span>
                 <span style="color:var(--muted);">${m.unit||'—'}</span>
                 <span style="font-family:var(--mono);color:var(--orange);">${m.reorderPoint}</span>
+                <span style="font-family:var(--mono);color:var(--navy);">${m.maxL||0}</span>
                 <span style="font-family:var(--mono);color:var(--purple);">${m.mit||0}</span>
                 <span>
                   <span style="font-family:var(--mono);font-weight:700;font-size:14px;">${m.currentStock}</span>
