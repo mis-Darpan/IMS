@@ -526,3 +526,59 @@ tbody tr:hover td { background: #f8faff; }
 .kpi-orange { background: linear-gradient(135deg,#ea580c,#c2410c); color:#fff; }
 .kpi-purple { background: linear-gradient(135deg,#7c3aed,#6d28d9); color:#fff; }
 .kpi-red    { background: linear-gradient(135deg,#dc2626,#b91c1c); color:#fff; }
+
+/* ── STOCK TREE VIEW ── */
+.tree-cat {
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 10px;
+  box-shadow: var(--sh); overflow: hidden;
+}
+.tree-cat-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; cursor: pointer;
+  background: linear-gradient(90deg, var(--s2), var(--white));
+  transition: background .15s;
+  user-select: none;
+}
+.tree-cat-header:hover { background: var(--s3); }
+.tree-cat-title { display: flex; align-items: center; gap: 10px; }
+.tree-cat-title h3 { font-size: 13px; font-weight: 700; color: var(--navy); }
+.tree-cat-meta { display: flex; align-items: center; gap: 10px; }
+.tree-cat-count { font-size: 11px; color: var(--muted); }
+.tree-cat-stock { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); }
+.tree-arrow { font-size: 11px; color: var(--muted); transition: transform .2s; }
+.tree-arrow.open { transform: rotate(180deg); }
+
+.tree-brand { border-top: 1px solid var(--border); }
+.tree-brand-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 9px 18px 9px 32px; cursor: pointer;
+  background: #fafbff; transition: background .15s;
+  user-select: none;
+}
+.tree-brand-header:hover { background: var(--s3); }
+.tree-brand-title { display: flex; align-items: center; gap: 8px; }
+.tree-brand-title h4 { font-size: 12px; font-weight: 600; color: var(--navy2); }
+.tree-brand-stock { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--teal); }
+
+.tree-models { border-top: 1px solid var(--border); }
+.tree-model-row {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px 80px 100px 90px;
+  gap: 8px; align-items: center;
+  padding: 8px 18px 8px 48px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  transition: background .1s;
+}
+.tree-model-row:last-child { border-bottom: none; }
+.tree-model-row:hover { background: #f8faff; }
+.tree-model-name { font-weight: 500; color: var(--text); }
+.tree-model-headers {
+  display: grid;
+  grid-template-columns: 1fr 80px 80px 80px 100px 90px;
+  gap: 8px; padding: 6px 18px 6px 48px;
+  background: #f3f5fb; border-bottom: 1px solid var(--border);
+  font-size: 9px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .8px;
+}
