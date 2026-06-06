@@ -582,3 +582,90 @@ tbody tr:hover td { background: #f8faff; }
   font-size: 9px; font-weight: 700; color: var(--muted);
   text-transform: uppercase; letter-spacing: .8px;
 }
+
+/* ── KEYFRAME ANIMATIONS ── */
+
+/* Page fade in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page.active { animation: fadeIn .25s cubic-bezier(.4,0,.2,1); }
+
+/* Card slide up */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.card { animation: slideUp .3s cubic-bezier(.4,0,.2,1); }
+.tree-cat { animation: slideUp .3s cubic-bezier(.4,0,.2,1); }
+
+/* KPI cards stagger */
+.kpi-card:nth-child(1) { animation: slideUp .3s .05s both cubic-bezier(.4,0,.2,1); }
+.kpi-card:nth-child(2) { animation: slideUp .3s .10s both cubic-bezier(.4,0,.2,1); }
+.kpi-card:nth-child(3) { animation: slideUp .3s .15s both cubic-bezier(.4,0,.2,1); }
+.kpi-card:nth-child(4) { animation: slideUp .3s .20s both cubic-bezier(.4,0,.2,1); }
+.kpi-card:nth-child(5) { animation: slideUp .3s .25s both cubic-bezier(.4,0,.2,1); }
+
+/* Table rows fade in */
+@keyframes rowIn {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+tbody tr { animation: rowIn .2s ease both; }
+tbody tr:nth-child(1)  { animation-delay: .03s; }
+tbody tr:nth-child(2)  { animation-delay: .06s; }
+tbody tr:nth-child(3)  { animation-delay: .09s; }
+tbody tr:nth-child(4)  { animation-delay: .12s; }
+tbody tr:nth-child(5)  { animation-delay: .15s; }
+tbody tr:nth-child(6)  { animation-delay: .18s; }
+tbody tr:nth-child(7)  { animation-delay: .21s; }
+tbody tr:nth-child(8)  { animation-delay: .24s; }
+tbody tr:nth-child(9)  { animation-delay: .27s; }
+tbody tr:nth-child(10) { animation-delay: .30s; }
+
+/* Modal pop in */
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal { animation: modalIn .22s cubic-bezier(.34,1.56,.64,1); }
+
+/* Toast slide up */
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px) scale(.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+#toast.show { animation: toastIn .3s cubic-bezier(.34,1.56,.64,1); }
+
+/* Stock bar fill */
+@keyframes barFill {
+  from { width: 0; }
+}
+.sbf { animation: barFill .8s cubic-bezier(.4,0,.2,1); }
+
+/* Stat card number count feel */
+@keyframes numPop {
+  0%   { transform: scale(.8); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.sc-val { animation: numPop .4s .1s both cubic-bezier(.34,1.56,.64,1); }
+.kpi-val { animation: numPop .4s .15s both cubic-bezier(.34,1.56,.64,1); }
+
+/* Badge pulse on critical */
+@keyframes pulseCr {
+  0%,100% { box-shadow: 0 0 0 0 rgba(220,38,38,.4); }
+  50%      { box-shadow: 0 0 0 6px rgba(220,38,38,0); }
+}
+.b-cr { animation: pulseCr 2s infinite; }
+
+/* Sidebar nav item hover slide */
+.ni { transition: all .18s cubic-bezier(.4,0,.2,1); }
+
+/* Button press effect */
+.btn:active { transform: scale(.97); }
+.submit-btn:active { transform: scale(.98); }
+
+/* Spinner */
+@keyframes spin { to { transform: rotate(360deg); } }
