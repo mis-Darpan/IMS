@@ -1022,7 +1022,7 @@ function renderStockTree(stocks) {
         </div>
         <div id="brand-${cat}-${brand}" style="display:none;">
           <div class="tree-model-headers">
-            <span>Model</span><span>Unit</span><span>ROP</span><span>Max</span><span>MIT</span><span>Stock</span><span>Status</span>
+            <span>Model</span><span>Unit</span><span>ROP</span><span>Max</span><span>MIT</span><span>Store Stock</span><span>WIP</span><span>Status</span>
           </div>
           <div class="tree-models">
             ${models.map(m => {
@@ -1039,6 +1039,9 @@ function renderStockTree(stocks) {
                   <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;width:60px;">
                     <div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div>
                   </div>
+                </span>
+                <span style="font-family:var(--mono);font-weight:700;font-size:14px;color:${m.wip>0?'var(--purple)':'var(--light)'};">
+                  ${m.wip > 0 ? m.wip : '—'}
                 </span>
                 <span>${stBadge(m.status)}</span>
               </div>`;
