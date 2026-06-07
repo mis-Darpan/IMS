@@ -207,6 +207,9 @@ async function loadDash() {
     greetEl.textContent = `${greeting}, ${rname} 👋`;
   }
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  // Role based dashboard
+  if (_currentRole === 'ajay') { await loadAjayDash(); return; }
+  if (_currentRole === 'sandeep') { await loadSandeepDash(); return; }
   try {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
@@ -1808,6 +1811,184 @@ async function submitRequest() {
     loadDash();
   } catch(e) { toast(e.message, 'err'); }
   finally { if (btn) { btn.disabled = false; btn.textContent = '📤 Request Bhejo'; } }
+}
+
+// ── AJAY DASHBOARD ──
+async function loadAjayDash() {
+  try {
+    const d = await api('getDashboard');
+    _stocks = d.stocks || [];
+
+    // KPI
+    document.getElementById('s-total').textContent = d.totalItems || 0;
+    document.getElementById('s-ro').textContent    = d.reorderCount || 0;
+    document.getElementById('s-in').textContent    = d.todayIn || 0;
+    document.getElementById('s-out').textContent   = d.todayOut || 0;
+    document.getElementById('s-wip').textContent   = (d.wipItems||[]).length || 0;
+
+    // Badges
+    const nb = document.getElementById('nb');
+    if (nb) { nb.style.display = d.reorderCount>0?'inline':'none'; nb.textContent = d.reorderCount; }
+    const nbr = document.getElementById('nb-req');
+    if (nbr) { nbr.style.display = d.pendingRequests>0?'inline':'none'; nbr.textContent = d.pendingRequests; }
+    const dab = document.getElementById('d-alert-badge');
+    if (dab) { dab.style.display = d.reorderCount>0?'inline':'none'; dab.textContent = d.reorderCount; }
+
+    // Ajay sees: Store stock, Reorder alerts, Recent txns, Pending requests
+    const storeWrap = document.getElementById('d-store');
+    if (storeWrap) {
+      storeWrap.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">
+        <thead><tr>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Item</th>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Unit</th>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Store Stock</th>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">ROP</th>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">MIT</th>
+          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;border-bottom:1.5px solid var(--border);background:var(--s2);">Status</th>
+        </tr></thead>
+        <tbody>
+          ${d.stocks.map(s => {
+            const pct = s.maxL > 0 ? Math.min(100, Math.round(s.currentStock/s.maxL*100)) : 0;
+            const bc = s.status==='OK'?'var(--green)':s.status==='Reorder'?'var(--orange)':'var(--red)';
+            return `<tr>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;color:var(--navy);">${s.name}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
+                <span style="font-family:var(--mono);font-weight:700;font-size:15px;">${s.currentStock}</span>
+                <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;"><div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div></div>
+              </td>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--orange);font-weight:600;">${s.reorderPoint}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">${(s.mit||0)>0?`<span style="font-family:var(--mono);color:var(--purple);">🚚${s.mit}</span>`:'—'}</td>
+              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">${stBadge(s.status)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table></div>`;
+    }
+
+    // Alerts
+    const al = document.getElementById('d-alerts');
+    if (al) {
+      if (!d.alerts || !d.alerts.length) {
+        al.innerHTML = `<div class="empty" style="padding:28px 20px;"><div class="ei">✅</div><div class="et">Sab OK hai!</div></div>`;
+      } else {
+        al.innerHTML = d.alerts.map(s => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:600;font-size:13px;">${s.name}</div>
+            <div style="font-size:11px;color:var(--muted);">ROP: <b>${s.reorderPoint}</b> | Stock: <b>${s.currentStock}</b></div></div>
+            ${stBadge(s.status)}
+          </div>`).join('');
+      }
+    }
+
+    // Recent txns
+    const rt = document.getElementById('d-recent');
+    if (rt) {
+      if (!d.recentTxns || !d.recentTxns.length) {
+        rt.innerHTML = `<div class="empty" style="padding:28px 20px;"><div class="ei">📭</div><div class="et">Koi transaction nahi</div></div>`;
+      } else {
+        rt.innerHTML = d.recentTxns.map(t => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:500;font-size:13px;">${t.itemName||'—'}</div>
+            <div style="font-size:11px;color:var(--muted);">${fmtDT(t.ts)}</div></div>
+            <span class="badge ${t.txnType==='IN'?'b-in':'b-out'}">${t.txnType==='IN'?'↑ IN':'↓ OUT'} ${t.qty||''}</span>
+          </div>`).join('');
+      }
+    }
+
+    // Hide WIP/FG for Ajay
+    const wipW = document.getElementById('d-wip');
+    const fgW  = document.getElementById('d-fg');
+    if (wipW) wipW.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">Production data — Sandeep ke paas hai</div>`;
+    if (fgW)  fgW.innerHTML  = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">Finished Goods — Sandeep ke paas hai</div>`;
+
+    renderStockChart(d.stocks || []);
+    setDot('ok', 'Connected');
+  } catch(e) { toast(e.message, 'err'); setDot('err', 'Error'); }
+}
+
+// ── SANDEEP DASHBOARD ──
+async function loadSandeepDash() {
+  try {
+    const d = await api('getDashboard');
+    _stocks = d.stocks || [];
+
+    // KPI — Sandeep relevant
+    document.getElementById('s-total').textContent = (d.wipItems||[]).length || 0;
+    document.getElementById('s-ro').textContent    = (d.fg||[]).length || 0;
+    document.getElementById('s-in').textContent    = d.todayOut || 0;  // outward = production mein aaya
+    document.getElementById('s-out').textContent   = '—';
+    document.getElementById('s-wip').textContent   = (d.wipItems||[]).length || 0;
+
+    // Update KPI labels for Sandeep
+    const labels = document.querySelectorAll('.kpi-label');
+    if (labels[0]) labels[0].textContent = 'Items in WIP';
+    if (labels[1]) labels[1].textContent = 'FG Models';
+    if (labels[2]) labels[2].textContent = 'Today Production In';
+    if (labels[3]) labels[3].textContent = '—';
+
+    // Store section — show outward (what came to production)
+    const storeWrap = document.getElementById('d-store');
+    if (storeWrap) {
+      storeWrap.innerHTML = d.recentTxns && d.recentTxns.filter(t=>t.txnType==='OUT').length ?
+        `<div>
+          <div style="padding:10px 16px;background:var(--s2);font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.7px;">
+            📤 Aaj Store Se Production Mein Aaya
+          </div>
+          ${d.recentTxns.filter(t=>t.txnType==='OUT').map(t=>`
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+              <div><div style="font-weight:600;font-size:13px;">${t.itemName||'—'}</div>
+              <div style="font-size:11px;color:var(--muted);">${fmtDT(t.ts)} · ${t.department||'—'}</div></div>
+              <span style="font-family:var(--mono);font-weight:700;color:var(--orange);">-${t.qty}</span>
+            </div>`).join('')}
+        </div>` :
+        `<div class="empty" style="padding:28px;"><div class="ei">📤</div><div class="et">Aaj koi material nahi aaya</div></div>`;
+    }
+
+    // WIP
+    const wipW = document.getElementById('d-wip');
+    if (wipW) {
+      if (!d.wipItems || !d.wipItems.length) {
+        wipW.innerHTML = `<div class="empty" style="padding:28px 20px;"><div class="ei">🏭</div><div class="et">WIP mein kuch nahi</div></div>`;
+      } else {
+        wipW.innerHTML = d.wipItems.map(s=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:600;font-size:13px;">${s.name}</div>
+            <div style="font-size:11px;color:var(--muted);">Store: ${s.currentStock} ${s.unit||''}</div></div>
+            <div style="text-align:right;">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--purple);">${s.wip}</div>
+              <div style="font-size:10px;color:var(--muted);">Production mein</div>
+            </div>
+          </div>`).join('');
+      }
+    }
+
+    // FG
+    const fgW = document.getElementById('d-fg');
+    if (fgW) {
+      if (!d.fg || !d.fg.length) {
+        fgW.innerHTML = `<div class="empty" style="padding:28px 20px;"><div class="ei">📦</div><div class="et">Koi FG nahi</div></div>`;
+      } else {
+        fgW.innerHTML = d.fg.map(f=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
+            <div><div style="font-weight:600;font-size:13px;">${f.model}</div>
+            <div style="font-size:11px;color:var(--muted);">Last: ${fmtD(f.lastDate)}</div></div>
+            <div style="text-align:right;">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);">${f.totalProduced}</div>
+              <div style="font-size:10px;color:var(--muted);">Units</div>
+            </div>
+          </div>`).join('');
+      }
+    }
+
+    // Hide reorder alerts for Sandeep
+    const al = document.getElementById('d-alerts');
+    if (al) al.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">Reorder — Ajay ke paas hai</div>`;
+    const rt = document.getElementById('d-recent');
+    if (rt) rt.innerHTML = `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;">Store transactions — Ajay ke paas hain</div>`;
+
+    setDot('ok', 'Connected');
+  } catch(e) { toast(e.message, 'err'); setDot('err', 'Error'); }
 }
 
 // ── STOCK LEVEL CHART ──
