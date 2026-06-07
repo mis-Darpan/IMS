@@ -7,6 +7,85 @@ const API = 'https://script.google.com/macros/s/AKfycbwgE4ZMYVa0ceNk2PJMJrSC0ask
 
 const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Cathodic Wing','Future Cell','Phoenix Wing','Other'];
 
+// ── ROLES & PINS ──
+const ROLES = {
+  admin:   { pin: '1234', name: 'Admin',   pages: ['dashboard','inward','outward','dispatch','requests','items','opening','bom','indent','stock','reorder','closing'] },
+  ajay:    { pin: '0001', name: 'Ajay',    pages: ['dashboard','inward','outward','requests','stock','reorder'] },
+  sandeep: { pin: '0002', name: 'Sandeep', pages: ['dashboard','dispatch','stock'] },
+};
+
+let _currentRole = null;
+let _selectedRole = null;
+
+function selectRole(role) {
+  _selectedRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('role-' + role).classList.add('active');
+  document.getElementById('login-pin').focus();
+  document.getElementById('login-err').style.display = 'none';
+}
+
+function doLogin() {
+  const pin = document.getElementById('login-pin').value;
+  const err = document.getElementById('login-err');
+  if (!_selectedRole) { err.textContent = '❌ Pehle role select karo'; err.style.display = 'block'; return; }
+  if (pin !== ROLES[_selectedRole].pin) { err.style.display = 'block'; err.textContent = '❌ Galat PIN — dobara try karo'; document.getElementById('login-pin').value = ''; return; }
+
+  _currentRole = _selectedRole;
+  localStorage.setItem('lpx_role', _currentRole);
+  localStorage.setItem('lpx_name', ROLES[_currentRole].name);
+  showApp();
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'flex';
+  applyRoleUI();
+  loadDash();
+}
+
+function applyRoleUI() {
+  const role = ROLES[_currentRole];
+  if (!role) return;
+
+  // Show/hide nav items
+  document.querySelectorAll('.ni[data-page]').forEach(ni => {
+    const page = ni.getAttribute('data-page');
+    ni.style.display = role.pages.includes(page) ? 'flex' : 'none';
+  });
+
+  // Show/hide nav groups if all items hidden
+  document.querySelectorAll('.ng').forEach(ng => {
+    const items = ng.querySelectorAll('.ni[data-page]');
+    const hasVisible = Array.from(items).some(i => i.style.display !== 'none');
+    const label = ng.querySelector('.ng-label');
+    if (label) label.style.display = hasVisible ? '' : 'none';
+  });
+
+  // Update greeting with role name
+  const greetEl = document.getElementById('dash-greeting');
+  if (greetEl) {
+    const now = new Date();
+    const hr = now.getHours();
+    const g = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+    greetEl.textContent = `${g}, ${role.name} 👋`;
+  }
+
+  // Show logout btn
+  const lb = document.getElementById('logout-btn');
+  if (lb) lb.style.display = 'flex';
+}
+
+function logout() {
+  localStorage.removeItem('lpx_role');
+  localStorage.removeItem('lpx_name');
+  _currentRole = null; _selectedRole = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app-shell').style.display = 'none';
+  document.getElementById('login-pin').value = '';
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+}
+
 // ── STATE ──
 let _items   = [];
 let _stocks  = [];
@@ -64,7 +143,16 @@ window.onload = async function() {
   document.getElementById('in-date-f').value = today();
   document.getElementById('out-date-f').value = today();
   setDot('loading', 'Connecting...');
-  await loadDash();
+
+  // Check saved role
+  const savedRole = localStorage.getItem('lpx_role');
+  if (savedRole && ROLES[savedRole]) {
+    _currentRole = savedRole;
+    showApp();
+  } else {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-shell').style.display = 'none';
+  }
 };
 
 // ── CONNECTION ──
@@ -114,7 +202,10 @@ async function loadDash() {
   const hr = now.getHours();
   const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const greetEl = document.getElementById('dash-greeting');
-  if (greetEl) greetEl.textContent = `${greeting}, Sahil / Sneha 👋`;
+  if (greetEl) {
+    const rname = _currentRole ? ROLES[_currentRole].name : 'Sahil / Sneha';
+    greetEl.textContent = `${greeting}, ${rname} 👋`;
+  }
   document.getElementById('dash-date').textContent = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   try {
     const d = await api('getDashboard');
