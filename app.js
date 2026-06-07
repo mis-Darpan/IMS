@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyy5PjWL4FY1O4REf7bwTvYWO3tkKiXietk9on2f0Llx-gzakCQ0dcb0mYS4Tz9hvtz/exec';
+const API = 'https://script.google.com/macros/s/AKfycbwgE4ZMYVa0ceNk2PJMJrSC0askLM06-qaOuEIZZgjhXYGW2z6lqqOJtNI1H3QrunMR/exec';
 
 const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Cathodic Wing','Future Cell','Phoenix Wing','Other'];
 
@@ -732,25 +732,23 @@ function updROP() {
   const l   = Number(document.getElementById('f-lt').value)  || 0;
   const s   = Number(document.getElementById('f-sf').value)  || 1;
   const u   = document.getElementById('f-unit').value || 'units';
-  const rop = Math.ceil(a * l * s);
-  const moq = rop;
-  const max = rop * 2;
+  const max = Math.ceil(a * l * s);  // Max = ADC × LT × SF
+  const rop = Math.ceil(max / 2);    // ROP = Max / 2
   document.getElementById('rop-prev').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:4px;">
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">REORDER POINT</div>
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);">${rop} <span style="font-size:11px;">${u}</span></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">MAX LEVEL</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);">${max} <span style="font-size:11px;">${u}</span></div>
         <div style="font-size:10px;color:var(--muted);">${a} × ${l} × ${s}</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">MOQ (AUTO)</div>
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--orange);">${moq} <span style="font-size:11px;">${u}</span></div>
-        <div style="font-size:10px;color:var(--muted);">= ROP</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">REORDER POINT (AUTO)</div>
+        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--accent);">${rop} <span style="font-size:11px;">${u}</span></div>
+        <div style="font-size:10px;color:var(--muted);">= Max ÷ 2</div>
       </div>
       <div>
-        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">MAX LEVEL (AUTO)</div>
-        <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);">${max} <span style="font-size:11px;">${u}</span></div>
-        <div style="font-size:10px;color:var(--muted);">= ROP × 2</div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:2px;">MOQ</div>
+        <input class="inp" id="f-moq" type="number" min="0" placeholder="Enter MOQ" style="font-family:var(--mono);font-size:14px;font-weight:700;margin-top:2px;">
       </div>
     </div>`;
 }
@@ -763,13 +761,15 @@ async function saveItem() {
   const adc = Number(document.getElementById('f-adc').value) || 0;
   const lt  = Number(document.getElementById('f-lt').value)  || 0;
   const sf  = Number(document.getElementById('f-sf').value)  || 1.2;
-  const rop = Math.ceil(adc * lt * sf);
+  const maxL = Math.ceil(adc * lt * sf);
+  const rop  = Math.ceil(maxL / 2);
+  const moq  = Number((document.getElementById('f-moq')||{}).value) || rop;
   const payload = {
     name, cat: _selCat || _editItemName && (_items.find(i=>i.name===_editItemName)||{}).cat || 'Other',
     unit: document.getElementById('f-unit').value,
     adc, lt, sf,
-    moq:  rop,
-    maxL: rop * 2,
+    moq,
+    maxL,
     mit:  Number(document.getElementById('f-mit').value) || 0,
     remarks: document.getElementById('f-remarks').value,
   };
