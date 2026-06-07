@@ -342,22 +342,19 @@
         <div class="dot loading" id="api-dot"></div>
         <span class="conn-lbl" id="api-lbl">Connecting...</span>
       </div>
+      <div id="logout-btn" style="display:none;margin-bottom:8px;">
+        <button onclick="logout()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;font-family:var(--sans);font-size:11px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(220,38,38,.2)';this.style.color='#fca5a5';this.style.borderColor='rgba(220,38,38,.3)'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.5)';this.style.borderColor='rgba(255,255,255,.12)'">
+          <span>🚪</span>
+          <span id="logout-role-label"></span>
+          <span>Logout</span>
+        </button>
+      </div>
       <div class="foot-brand">Designed by Darpan</div>
     </div>
   </div>
 
   <!-- MAIN -->
   <div class="main">
-
-    <!-- GLOBAL TOPBAR -->
-    <div id="global-topbar" style="display:none;position:sticky;top:0;z-index:50;background:var(--bg);padding-bottom:12px;margin-bottom:-12px;">
-      <div style="display:flex;justify-content:flex-end;">
-        <button id="logout-btn" onclick="logout()" style="display:flex;align-items:center;gap:6px;background:#fff;border:1.5px solid #dde3ef;border-radius:20px;padding:6px 14px 6px 10px;font-family:var(--sans);font-size:12px;font-weight:600;color:#374151;cursor:pointer;box-shadow:0 2px 8px rgba(15,29,53,.08);transition:all .15s;" onmouseover="this.style.borderColor='#dc2626';this.style.color='#dc2626'" onmouseout="this.style.borderColor='#dde3ef';this.style.color='#374151'">
-          <span id="logout-role-label" style="font-size:11px;color:#9ca3af;margin-right:2px;"></span>
-          <span>🚪</span><span>Logout</span>
-        </button>
-      </div>
-    </div>
 
     <!-- DASHBOARD -->
     <div class="page active" id="page-dashboard">
