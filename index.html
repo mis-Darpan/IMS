@@ -254,10 +254,10 @@
   <div class="login-right">
     <div class="login-card">
       <div class="login-card-title">Welcome back 👋</div>
-      <div class="login-card-sub">Apna role select karein aur PIN enter karein</div>
+      <div class="login-card-sub">Select your role and enter your PIN</div>
 
       <!-- ROLE SELECT -->
-      <label class="login-field-label">Role Select Karein</label>
+      <label class="login-field-label">Select Role</label>
       <div class="role-grid" id="role-grid">
         <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
           <div class="role-icon">👑</div>
@@ -277,7 +277,7 @@
       </div>
 
       <!-- PIN -->
-      <label class="login-field-label">PIN Enter Karein</label>
+      <label class="login-field-label">Enter PIN</label>
       <div class="pin-wrap">
         <input type="password" class="pin-input" id="login-pin" maxlength="6" placeholder="• • • • • •"
           onkeydown="if(event.key==='Enter') doLogin()">
@@ -708,7 +708,7 @@
     <!-- STOCK SUMMARY -->
     <div class="page" id="page-stock">
       <div class="tb">
-        <div class="pt"><h1>Stock Summary</h1><p>Category → Brand → Model — Live stock</p></div>
+        <div class="pt"><h1>Stock Summary</h1><p>Category → Brand → Model — Live Stock</p></div>
         <div class="ta">
           <input class="inp" id="stock-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterStock()">
           <select class="inp" id="stock-cat-f" style="width:140px;" onchange="filterStock()">
@@ -788,13 +788,13 @@
     <!-- OPENING STOCK -->
     <div class="page" id="page-opening">
       <div class="tb">
-        <div class="pt"><h1>Opening Stock</h1><p>Pehle se existing stock — ek baar enter karo</p></div>
+        <div class="pt"><h1>Opening Stock</h1><p>Set opening stock — one time setup</p></div>
         <div class="ta">
           <button class="btn bp" onclick="saveOpeningStock()">💾 Save Opening Stock</button>
         </div>
       </div>
       <div style="background:var(--amber-l);border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amber);">
-        ⚠ Ye ek baar setup hota hai. Pehle se store mein jo material hai woh yahan enter karo. Baad mein Inward/Outward se automatically update hoga.
+        ⚠ This is a one-time setup. Enter existing stock quantities. These will be the base for all future calculations.
       </div>
       <div class="card">
         <div class="tw">
@@ -809,7 +809,7 @@
     <!-- INDENT / PO -->
     <div class="page" id="page-indent">
       <div class="tb">
-        <div class="pt"><h1>Indent / PO</h1><p>Purchase orders — supplier ko order diya, expected date, received status</p></div>
+        <div class="pt"><h1>Indent / PO</h1><p>Track purchase orders — supplier orders, expected dates, received status</p></div>
         <div class="ta">
           <select class="inp" id="indent-status-f" style="width:140px;" onchange="loadIndents()">
             <option value="">All</option>
@@ -834,7 +834,7 @@
     <!-- MATERIAL REQUESTS (Ajay view) -->
     <div class="page" id="page-requests">
       <div class="tb">
-        <div class="pt"><h1>Material Requests</h1><p>Production se aayi requests — check karke Outward karo</p></div>
+        <div class="pt"><h1>Material Requests</h1><p>Requests from production — review and issue material</p></div>
         <div class="ta">
           <select class="inp" id="req-status-f" style="width:140px;" onchange="loadRequests()">
             <option value="Pending">Pending</option>
@@ -984,7 +984,7 @@
       <div id="brand-section" style="display:none;margin-bottom:16px;">
         <label class="inp-label">Step 2 — Brand / Type *</label>
         <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="brand-grid"></div>
-        <input class="inp" id="f-brand-custom" placeholder="Ya khud likhein..." style="margin-top:8px;display:none;" oninput="updItemName()">
+        <input class="inp" id="f-brand-custom" placeholder="Or type custom..." style="margin-top:8px;display:none;" oninput="updItemName()">
       </div>
 
       <!-- STEP 3: Model -->
@@ -1059,7 +1059,7 @@
   <div class="modal modal-lg">
     <div class="mh"><h2 id="bom-edit-title">Edit BOM</h2><button class="mclose" onclick="closeM('bom-edit-modal')">✕</button></div>
     <div class="mb">
-      <div style="margin-bottom:12px;font-size:12px;color:var(--muted);">Har component ki qty enter karo (per 1 unit battery)</div>
+      <div style="margin-bottom:12px;font-size:12px;color:var(--muted);">Enter component quantities (per 1 unit)</div>
       <div id="bom-rows-wrap"></div>
       <button class="btn bg bsm" style="margin-top:8px;" onclick="addBomRow()">+ Add Component</button>
     </div>
