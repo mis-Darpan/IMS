@@ -27,65 +27,274 @@
 <body>
 
 <!-- LOGIN SCREEN -->
-<div id="login-screen" style="min-height:100vh;background:linear-gradient(135deg,#0f1d35 0%,#162444 50%,#1a1f3e 100%);display:flex;align-items:center;justify-content:center;padding:20px;">
-  <div style="width:100%;max-width:400px;">
-    <!-- Logo -->
-    <div style="text-align:center;margin-bottom:32px;">
-      <div style="width:64px;height:64px;background:linear-gradient(135deg,#f59e0b,#f97316);border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:28px;font-weight:700;color:#fff;margin:0 auto 14px;box-shadow:0 8px 24px rgba(245,158,11,.4);">L</div>
-      <div style="font-size:22px;font-weight:700;color:#fff;">Litpax IMS</div>
-      <div style="font-size:12px;color:rgba(255,255,255,.4);margin-top:4px;letter-spacing:1px;text-transform:uppercase;">Inventory Management System</div>
-    </div>
+<style>
+#login-screen {
+  min-height: 100vh;
+  background: #f0f4ff;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
 
-    <!-- Login Card -->
-    <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:28px;backdrop-filter:blur(10px);">
-      <div style="margin-bottom:20px;">
-        <label style="display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">Select Role</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" id="role-grid">
-          <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
-            <div style="font-size:20px;margin-bottom:4px;">👑</div>
-            <div>Admin</div>
-          </button>
-          <button class="role-btn" onclick="selectRole('ajay')" id="role-ajay">
-            <div style="font-size:20px;margin-bottom:4px;">📦</div>
-            <div>Ajay</div>
-            <div style="font-size:9px;opacity:.6;">Store</div>
-          </button>
-          <button class="role-btn" onclick="selectRole('sandeep')" id="role-sandeep">
-            <div style="font-size:20px;margin-bottom:4px;">🏭</div>
-            <div>Sandeep</div>
-            <div style="font-size:9px;opacity:.6;">Production</div>
-          </button>
+/* Decorative background shapes */
+.login-bg-shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: .06;
+  background: #162444;
+}
+
+.login-left {
+  width: 45%;
+  background: linear-gradient(145deg, #162444 0%, #1e3260 50%, #243a72 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+  overflow: hidden;
+}
+.login-left::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  background: rgba(245,158,11,.08);
+  border-radius: 50%;
+  top: -100px; right: -100px;
+}
+.login-left::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  background: rgba(37,88,232,.12);
+  border-radius: 50%;
+  bottom: -80px; left: -80px;
+}
+.login-left-inner { position: relative; z-index: 1; text-align: center; }
+.login-logo-box {
+  width: 80px; height: 80px;
+  background: linear-gradient(135deg, #f59e0b, #f97316);
+  border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 36px; font-weight: 700; color: #fff;
+  margin: 0 auto 24px;
+  box-shadow: 0 12px 40px rgba(245,158,11,.4);
+}
+.login-brand { font-size: 28px; font-weight: 800; color: #fff; letter-spacing: -.5px; }
+.login-tagline { font-size: 13px; color: rgba(255,255,255,.45); margin-top: 8px; letter-spacing: 1.5px; text-transform: uppercase; }
+
+/* Stats pills */
+.login-stats { display: flex; flex-direction: column; gap: 12px; margin-top: 40px; width: 100%; }
+.login-stat {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex; align-items: center; gap: 12px;
+  backdrop-filter: blur(8px);
+}
+.login-stat-icon { font-size: 20px; }
+.login-stat-text { font-size: 12px; color: rgba(255,255,255,.6); }
+.login-stat-text strong { display: block; font-size: 14px; color: #fff; font-weight: 600; }
+
+.login-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  position: relative;
+}
+
+/* Subtle dot pattern */
+.login-right::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, #c7d2fe 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: .35;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(22,36,68,.12), 0 4px 16px rgba(22,36,68,.06);
+  border: 1px solid #e8ecf8;
+  position: relative;
+  z-index: 1;
+}
+.login-card-title { font-size: 22px; font-weight: 800; color: #162444; margin-bottom: 6px; }
+.login-card-sub   { font-size: 13px; color: #6b7280; margin-bottom: 28px; }
+
+.login-field-label {
+  font-size: 10px; font-weight: 700;
+  color: #374151; text-transform: uppercase;
+  letter-spacing: .8px; margin-bottom: 8px; display: block;
+}
+
+/* Role cards */
+.role-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 22px; }
+.role-btn {
+  padding: 14px 8px; border-radius: 12px;
+  border: 2px solid #e8ecf8;
+  background: #f8faff;
+  color: #374151;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .18s;
+  text-align: center;
+}
+.role-btn:hover {
+  border-color: #2558e8;
+  background: #eaf0ff;
+  color: #2558e8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37,88,232,.15);
+}
+.role-btn.active {
+  border-color: #162444;
+  background: #162444;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22,36,68,.3);
+}
+.role-btn .role-icon { font-size: 22px; margin-bottom: 6px; }
+.role-btn .role-name { font-size: 13px; font-weight: 700; }
+.role-btn .role-sub  { font-size: 9px; opacity: .6; margin-top: 2px; }
+
+/* PIN input */
+.pin-wrap { position: relative; margin-bottom: 20px; }
+.pin-input {
+  width: 100%;
+  background: #f6f8fc;
+  border: 2px solid #dde3ef;
+  border-radius: 10px;
+  padding: 13px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  letter-spacing: 10px;
+  text-align: center;
+  color: #162444;
+  outline: none;
+  transition: all .15s;
+}
+.pin-input:focus { border-color: #2558e8; background: #fff; box-shadow: 0 0 0 4px rgba(37,88,232,.1); }
+.pin-input::placeholder { letter-spacing: 4px; font-size: 14px; color: #9ca3af; }
+
+.login-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #162444, #243a72);
+  color: #fff; border: none; border-radius: 12px;
+  padding: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: all .2s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  letter-spacing: .3px;
+}
+.login-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(22,36,68,.3); }
+.login-btn:active { transform: scale(.99); }
+
+.login-err {
+  display: none;
+  background: #fef2f2; border: 1px solid #fecaca;
+  border-radius: 8px; padding: 8px 12px;
+  color: #dc2626; font-size: 12px;
+  margin-bottom: 14px; text-align: center;
+}
+
+.login-footer {
+  text-align: center; margin-top: 20px;
+  font-size: 11px; color: #9ca3af;
+}
+
+@media (max-width: 768px) {
+  #login-screen { flex-direction: column; }
+  .login-left { width: 100%; padding: 32px 24px; }
+  .login-stats { display: none; }
+  .login-right { padding: 24px 16px; }
+}
+</style>
+
+<div id="login-screen">
+  <!-- Bg shapes -->
+  <div class="login-bg-shape" style="width:600px;height:600px;top:-200px;right:-100px;"></div>
+  <div class="login-bg-shape" style="width:400px;height:400px;bottom:-150px;left:30%;"></div>
+
+  <!-- LEFT PANEL -->
+  <div class="login-left">
+    <div class="login-left-inner">
+      <div class="login-logo-box">L</div>
+      <div class="login-brand">Litpax IMS</div>
+      <div class="login-tagline">Inventory Management System</div>
+
+      <div class="login-stats">
+        <div class="login-stat">
+          <span class="login-stat-icon">🏪</span>
+          <div class="login-stat-text"><strong>Store Management</strong>Real-time inventory tracking</div>
+        </div>
+        <div class="login-stat">
+          <span class="login-stat-icon">🏭</span>
+          <div class="login-stat-text"><strong>Production Flow</strong>WIP & Finished Goods</div>
+        </div>
+        <div class="login-stat">
+          <span class="login-stat-icon">📊</span>
+          <div class="login-stat-text"><strong>Smart Reports</strong>Daily closing & analytics</div>
         </div>
       </div>
+    </div>
+  </div>
 
-      <div style="margin-bottom:20px;">
-        <label style="display:block;font-size:11px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;">PIN *</label>
-        <input type="password" id="login-pin" maxlength="6" placeholder="Enter PIN"
-          style="width:100%;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;padding:12px 16px;color:#fff;font-family:var(--mono);font-size:18px;letter-spacing:6px;outline:none;text-align:center;"
-          onkeydown="if(event.key==='Enter') doLogin()">
-        <div id="login-err" style="color:#f87171;font-size:12px;margin-top:6px;text-align:center;display:none;">❌ Galat PIN — dobara try karo</div>
+  <!-- RIGHT PANEL -->
+  <div class="login-right">
+    <div class="login-card">
+      <div class="login-card-title">Welcome back 👋</div>
+      <div class="login-card-sub">Apna role select karein aur PIN enter karein</div>
+
+      <!-- ROLE SELECT -->
+      <label class="login-field-label">Role Select Karein</label>
+      <div class="role-grid" id="role-grid">
+        <button class="role-btn" onclick="selectRole('admin')" id="role-admin">
+          <div class="role-icon">👑</div>
+          <div class="role-name">Admin</div>
+          <div class="role-sub">Full Access</div>
+        </button>
+        <button class="role-btn" onclick="selectRole('ajay')" id="role-ajay">
+          <div class="role-icon">📦</div>
+          <div class="role-name">Ajay</div>
+          <div class="role-sub">Store</div>
+        </button>
+        <button class="role-btn" onclick="selectRole('sandeep')" id="role-sandeep">
+          <div class="role-icon">🏭</div>
+          <div class="role-name">Sandeep</div>
+          <div class="role-sub">Production</div>
+        </button>
       </div>
 
-      <button onclick="doLogin()" style="width:100%;background:linear-gradient(135deg,#f59e0b,#f97316);color:#fff;border:none;border-radius:10px;padding:13px;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;">
-        Login →
+      <!-- PIN -->
+      <label class="login-field-label">PIN Enter Karein</label>
+      <div class="pin-wrap">
+        <input type="password" class="pin-input" id="login-pin" maxlength="6" placeholder="• • • • • •"
+          onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+
+      <!-- ERROR -->
+      <div class="login-err" id="login-err">❌ Galat PIN — dobara try karein</div>
+
+      <!-- LOGIN BTN -->
+      <button class="login-btn" onclick="doLogin()">
+        <span>Login</span><span>→</span>
       </button>
+
+      <div class="login-footer">Litpax Technology Pvt. Ltd. · Designed by Darpan</div>
     </div>
-    <div style="text-align:center;margin-top:16px;font-size:11px;color:rgba(255,255,255,.2);">Designed by Darpan · Litpax Technology</div>
   </div>
 </div>
-
-<style>
-.role-btn {
-  padding: 12px 8px; border-radius: 10px;
-  border: 1.5px solid rgba(255,255,255,.15);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.7);
-  font-family: var(--sans); font-size: 12px; font-weight: 600;
-  cursor: pointer; transition: all .15s; text-align: center;
-}
-.role-btn:hover { border-color: #f59e0b; color: #fff; background: rgba(245,158,11,.1); }
-.role-btn.active { border-color: #f59e0b; background: rgba(245,158,11,.2); color: #fff; }
-</style>
 
 <div class="shell" id="app-shell" style="display:none;">
   <!-- SIDEBAR -->
