@@ -112,6 +112,7 @@
         <div class="ni" onclick="showPage('inward')" data-page="inward"><span class="ic">📥</span><span>Inward</span></div>
         <div class="ni" onclick="showPage('outward')" data-page="outward"><span class="ic">📤</span><span>Outward</span></div>
         <div class="ni" onclick="showPage('dispatch')" data-page="dispatch"><span class="ic">🚚</span><span>Dispatch</span></div>
+        <div class="ni" onclick="showPage('wip')" data-page="wip"><span class="ic">🏭</span><span>WIP Tracker</span></div>
         <div class="ni" onclick="showPage('requests')" data-page="requests"><span class="ic">🔔</span><span>Material Requests</span><span class="nbadge" id="nb-req" style="display:none">0</span></div>
       </div>
 
@@ -655,6 +656,30 @@
 
 
 
+    <!-- WIP TRACKER PAGE -->
+    <div class="page" id="page-wip">
+      <div class="tb">
+        <div class="pt"><h1>WIP Tracker</h1><p>Production mein kya kya hai — running balance</p></div>
+        <div class="ta"><button class="btn bg bsm" onclick="loadWip()">↻ Refresh</button></div>
+      </div>
+      <div class="card">
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>Item</th>
+              <th>Category</th>
+              <th>Unit</th>
+              <th>Total Out (Store)</th>
+              <th>Dispatch Used</th>
+              <th>WIP Balance</th>
+            </tr></thead>
+            <tbody id="wip-tb"><tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr></tbody>
+          </table>
+        </div>
+        <div id="wip-empty" class="empty" style="display:none"><div class="ei">🏭</div><div class="et">No WIP data</div></div>
+      </div>
+    </div>
+
   </div><!-- /main -->
 </div><!-- /shell -->
 
@@ -911,6 +936,6 @@
   </div>
 </div>
 
-<script src="app.js?v=44"></script>
+<script src="app.js?v=45"></script>
 </body>
 </html>
