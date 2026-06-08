@@ -338,10 +338,11 @@
 
     <!-- SANDEEP DASHBOARD -->
     <div class="page" id="page-sandeep-dash">
+      <!-- TOP BAR -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
-          <div style="font-size:22px;font-weight:700;color:var(--navy);" id="sandeep-greeting">Good morning, Sandeep 👋</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="sandeep-date">—</div>
+          <div style="font-size:20px;font-weight:700;color:var(--navy);" id="sandeep-greeting">Good morning, Sandeep 👋</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="sandeep-date">—</div>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn bp" onclick="showPage('dispatch');openDispatchModal()">+ New Dispatch</button>
@@ -349,43 +350,31 @@
         </div>
       </div>
 
-      <!-- KPI -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
-        <div class="kpi-card kpi-orange"><div class="kpi-icon">📤</div><div class="kpi-val" id="sd-today-out">—</div><div class="kpi-label">Aaj Mila Material</div></div>
-        <div class="kpi-card kpi-purple"><div class="kpi-icon">🏭</div><div class="kpi-val" id="sd-wip">—</div><div class="kpi-label">WIP Items</div></div>
-        <div class="kpi-card kpi-green"><div class="kpi-icon">✅</div><div class="kpi-val" id="sd-fg">—</div><div class="kpi-label">FG Models</div></div>
-        <div class="kpi-card kpi-blue"><div class="kpi-icon">🚚</div><div class="kpi-val" id="sd-dispatch">—</div><div class="kpi-label">Total Dispatched</div></div>
+      <!-- SECTION 1: STORE SE MILA -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>📤</span><h2>Today — Received from Store</h2></div>
+          <span id="sd-issue-summary" style="font-size:12px;font-weight:600;color:var(--orange);">—</span>
+        </div>
+        <div id="sd-issue-section"><div class="empty" style="padding:24px;"><div class="ei">📤</div><div class="et">Nothing received today</div></div></div>
       </div>
 
-      <!-- TODAY PRODUCTION IN + WIP -->
-      <div class="g2" style="margin-bottom:14px;">
-        <div class="card">
-          <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
-            <div style="display:flex;align-items:center;gap:6px;"><span>📤</span><h2>Aaj Store Se Mila</h2></div>
-            <span style="font-size:11px;color:var(--muted);">Ajay ne kya diya production ko</span>
-          </div>
-          <div id="sd-today-in-list"><div class="empty" style="padding:28px;"><div class="ei">📤</div><div class="et">Aaj kuch nahi mila</div></div></div>
+      <!-- SECTION 2: WIP -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="ch" style="background:linear-gradient(90deg,#faf5ff,#f3eeff);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>🏭</span><h2>WIP — In Production</h2></div>
+          <span id="sd-wip-summary" style="font-size:12px;font-weight:600;color:var(--purple);">—</span>
         </div>
-        <div class="card">
-          <div class="ch" style="background:linear-gradient(90deg,#faf5ff,#f3eeff);">
-            <div style="display:flex;align-items:center;gap:6px;"><span>🏭</span><h2>WIP — Production Mein</h2></div>
-          </div>
-          <div id="sd-wip-list"><div class="empty" style="padding:28px;"><div class="ei">🏭</div><div class="et">WIP mein kuch nahi</div></div></div>
-        </div>
+        <div id="sd-wip-section"><div class="empty" style="padding:24px;"><div class="ei">🏭</div><div class="et">Nothing in WIP</div></div></div>
       </div>
 
-      <!-- DISPATCH HISTORY + FG -->
-      <div class="g2">
-        <div class="card">
-          <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
-            <div style="display:flex;align-items:center;gap:6px;"><span>✅</span><h2>Finished Goods</h2></div>
-          </div>
-          <div id="sd-fg-list"><div class="empty" style="padding:28px;"><div class="ei">📦</div><div class="et">Koi FG nahi</div></div></div>
+      <!-- SECTION 3: TODAY DISPATCH -->
+      <div class="card">
+        <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>🚚</span><h2>Today — Dispatched</h2></div>
+          <span id="sd-dispatch-summary" style="font-size:12px;font-weight:600;color:var(--green);">—</span>
         </div>
-        <div class="card">
-          <div class="ch"><div style="display:flex;align-items:center;gap:6px;"><span>🚚</span><h2>Recent Dispatch</h2></div></div>
-          <div id="sd-dispatch-list"><div class="empty" style="padding:28px;"><div class="ei">🚚</div><div class="et">Koi dispatch nahi</div></div></div>
-        </div>
+        <div id="sd-dispatch-section"><div class="empty" style="padding:24px;"><div class="ei">🚚</div><div class="et">No dispatch today</div></div></div>
       </div>
     </div>
 
@@ -922,6 +911,6 @@
   </div>
 </div>
 
-<script src="app.js?v=43"></script>
+<script src="app.js?v=44"></script>
 </body>
 </html>
