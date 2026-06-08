@@ -1857,131 +1857,85 @@ async function loadAjayDash() {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
 
-    // KPI
-    const todayInCount  = (d.recentTxns||[]).filter(t => t.txnType==='IN'  && t.date===today()).length;
-    const todayOutCount = (d.recentTxns||[]).filter(t => t.txnType==='OUT' && t.date===today() && !((t.remarks||'').startsWith('Dispatch:'))).length;
-    setEl('aj-total', d.totalItems || 0);
-    setEl('aj-in',    todayInCount + ' items');
-    setEl('aj-out',   todayOutCount + ' items');
-    setEl('aj-ro',    d.reorderCount || 0);
+    // KPI cards
+    const crit  = (d.stocks||[]).filter(s => s.status === 'Critical');
+    const reord = (d.stocks||[]).filter(s => s.status === 'Reorder');
+    setEl('aj-total',    d.totalItems || 0);
+    setEl('aj-critical', crit.length);
+    setEl('aj-reorder',  reord.length);
+    setEl('aj-req-count', d.pendingRequests || 0);
 
-    // Badges
-    const ajab = document.getElementById('aj-alert-badge');
-    if (ajab) { ajab.style.display = d.reorderCount>0?'inline':'none'; ajab.textContent = d.reorderCount; }
-    const ajrb = document.getElementById('aj-req-badge');
-    if (ajrb) { ajrb.style.display = d.pendingRequests>0?'inline':'none'; ajrb.textContent = d.pendingRequests; }
-
-    // Also update sidebar badges
+    // Sidebar badges
     const nb = document.getElementById('nb');
     if (nb) { nb.style.display = d.reorderCount>0?'inline':'none'; nb.textContent = d.reorderCount; }
     const nbr = document.getElementById('nb-req');
     if (nbr) { nbr.style.display = d.pendingRequests>0?'inline':'none'; nbr.textContent = d.pendingRequests; }
+    const ajrb = document.getElementById('aj-req-badge');
+    if (ajrb) { ajrb.style.display = d.pendingRequests>0?'inline':'none'; ajrb.textContent = d.pendingRequests; }
 
-    // Live Stock Table - Critical/Reorder first, OK collapsed
-    const st = document.getElementById('aj-stock-table');
-    if (st && d.stocks) {
-      const critical = d.stocks.filter(s => s.status === 'Critical');
-      const reorder  = d.stocks.filter(s => s.status === 'Reorder');
-      const ok       = d.stocks.filter(s => s.status === 'OK');
+    // Today Inward — grouped by item name, sorted
+    const inL = document.getElementById('aj-inward-list');
+    const inC = document.getElementById('aj-in-count');
+    try {
+      const inRows = await api('getInward', { date: today() });
+      const inMap = {};
+      inRows.forEach(r => {
+        if (!inMap[r.itemName]) inMap[r.itemName] = { qty: 0, unit: r.unit };
+        inMap[r.itemName].qty += r.qty;
+      });
+      const inItems = Object.entries(inMap).sort((a,b) => a[0].localeCompare(b[0]));
+      if (inC) inC.textContent = inItems.length ? inItems.length + ' items' : '';
+      if (inL) inL.innerHTML = inItems.length
+        ? inItems.map(([name, v]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);">
+            <div style="font-weight:600;font-size:13px;color:var(--navy);">${name}</div>
+            <span style="font-family:var(--mono);font-weight:700;color:var(--green);">+${v.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${v.unit||''}</span></span>
+          </div>`).join('')
+        : `<div class="empty" style="padding:20px;"><div class="ei">📥</div><div class="et">No inward today</div></div>`;
+    } catch(e) {}
 
-      const stockRow = (s) => {
-        const pct = s.maxL > 0 ? Math.min(100, Math.round(s.currentStock/s.maxL*100)) : 0;
-        const bc = s.status==='OK'?'var(--green)':s.status==='Reorder'?'var(--orange)':'var(--red)';
-        return `<tr>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600;color:var(--navy);font-size:13px;">${s.name}</td>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">
-            <span style="font-family:var(--mono);font-weight:700;font-size:15px;">${s.currentStock}</span>
-            <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;"><div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div></div>
-          </td>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--orange);font-weight:600;">${s.reorderPoint}</td>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">${(s.mit||0)>0?`<span style="font-family:var(--mono);color:var(--purple);">🚚${s.mit}</span>`:'—'}</td>
-          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">${stBadge(s.status)}</td>
-        </tr>`;
-      };
-
-      const thead = `<thead><tr>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Item</th>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Unit</th>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Stock</th>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">ROP</th>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">MIT</th>
-        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Status</th>
-      </tr></thead>`;
-
-      let html = '<div style="overflow-x:auto;">';
-
-      // Critical section
-      if (critical.length) {
-        html += `<div style="padding:6px 14px;background:#fef2f2;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);">🔴 Critical — Out of Stock (${critical.length})</div>`;
-        html += `<table style="width:100%;border-collapse:collapse;">${thead}<tbody>${critical.map(stockRow).join('')}</tbody></table>`;
-      }
-
-      // Reorder section
-      if (reorder.length) {
-        html += `<div style="padding:6px 14px;background:#fff7ed;font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);">🟠 Reorder Required (${reorder.length})</div>`;
-        html += `<table style="width:100%;border-collapse:collapse;">${thead}<tbody>${reorder.map(stockRow).join('')}</tbody></table>`;
-      }
-
-      // OK section - collapsed
-      if (ok.length) {
-        html += `<div style="padding:8px 14px;background:#f0fdf4;font-size:11px;font-weight:600;color:var(--green);border-top:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="
-          const okTb=document.getElementById('aj-ok-tb');
-          const arr=document.getElementById('aj-ok-arr');
-          if(okTb.style.display==='none'){okTb.style.display='block';arr.textContent='▲ Hide';}
-          else{okTb.style.display='none';arr.textContent='▼ Show';}
-        ">
-          <span>🟢 Healthy Stock (${ok.length} items)</span>
-          <span id="aj-ok-arr" style="font-size:11px;color:var(--muted);">▼ Show</span>
-        </div>
-        <div id="aj-ok-tb" style="display:none;">
-          <table style="width:100%;border-collapse:collapse;">${thead}<tbody>${ok.map(stockRow).join('')}</tbody></table>
-        </div>`;
-      }
-
-      if (!critical.length && !reorder.length && !ok.length) {
-        html += `<div class="empty"><div class="ei">📦</div><div class="et">No items</div></div>`;
-      }
-
-      html += '</div>';
-      st.innerHTML = html;
-    }
-
-    // Reorder alerts
-    const al = document.getElementById('aj-alerts');
-    if (al) {
-      if (!d.alerts || !d.alerts.length) {
-        al.innerHTML = `<div class="empty" style="padding:28px;"><div class="ei">✅</div><div class="et">Sab OK hai!</div></div>`;
-      } else {
-        al.innerHTML = d.alerts.map(s => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
-            <div><div style="font-weight:600;font-size:13px;">${s.name}</div>
-            <div style="font-size:11px;color:var(--muted);">ROP: <b>${s.reorderPoint}</b> | Stock: <b>${s.currentStock}</b> | MIT: <b>${s.mit||0}</b></div></div>
-            ${stBadge(s.status)}
-          </div>`).join('');
-      }
-    }
+    // Today Outward — grouped by item, exclude dispatch, sorted
+    const outL = document.getElementById('aj-outward-list');
+    const outC = document.getElementById('aj-out-count');
+    try {
+      const outRows = await api('getOutward', { date: today() });
+      const manual = outRows.filter(r => !(r.remarks||'').startsWith('Dispatch:'));
+      const outMap = {};
+      manual.forEach(r => {
+        if (!outMap[r.itemName]) outMap[r.itemName] = { qty: 0, unit: r.unit };
+        outMap[r.itemName].qty += r.qty;
+      });
+      const outItems = Object.entries(outMap).sort((a,b) => a[0].localeCompare(b[0]));
+      if (outC) outC.textContent = outItems.length ? outItems.length + ' items' : '';
+      if (outL) outL.innerHTML = outItems.length
+        ? outItems.map(([name, v]) => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);">
+            <div style="font-weight:600;font-size:13px;color:var(--navy);">${name}</div>
+            <span style="font-family:var(--mono);font-weight:700;color:var(--orange);">-${v.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${v.unit||''}</span></span>
+          </div>`).join('')
+        : `<div class="empty" style="padding:20px;"><div class="ei">📤</div><div class="et">No outward today</div></div>`;
+    } catch(e) {}
 
     // Pending requests
     const reqW = document.getElementById('aj-requests');
     if (reqW) {
       try {
         const reqs = await api('getRequests', { status: 'Pending' });
-        if (!reqs.length) {
-          reqW.innerHTML = `<div class="empty" style="padding:28px;"><div class="ei">✅</div><div class="et">Koi pending request nahi</div></div>`;
-        } else {
-          reqW.innerHTML = reqs.map(r => `
-            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);background:#f0f7ff;">
+        if (ajrb) { ajrb.style.display = reqs.length>0?'inline':'none'; ajrb.textContent = reqs.length; }
+        setEl('aj-req-count', reqs.length || d.pendingRequests || 0);
+        reqW.innerHTML = reqs.length
+          ? reqs.map(r => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);background:#f8faff;">
               <div>
                 <div style="font-weight:600;font-size:13px;">${r.itemName}</div>
-                <div style="font-size:11px;color:var(--muted);">${r.department||'—'} · ${r.requestedBy||'—'} · ${r.time||''}</div>
+                <div style="font-size:11px;color:var(--muted);">${r.department||'—'} · ${r.requestedBy||'—'}</div>
               </div>
               <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--accent);">${r.qty}</span>
-                <button class="btn bgn bsm" onclick="fulfillRequest('${r.id}','${r.itemName.replace(/'/g,"\'")}',${r.qty},'${r.department||''}')">Issue</button>
+                <span style="font-family:var(--mono);font-weight:700;color:var(--accent);">${r.qty}</span>
+                <button class="btn bgn bsm" onclick="fulfillRequest('${r.id}','${r.itemName.replace(/'/g,"\\'")}',${r.qty},'${r.department||''}')">Issue</button>
               </div>
-            </div>`).join('');
-        }
+            </div>`).join('')
+          : `<div class="empty" style="padding:20px;"><div class="ei">✅</div><div class="et">No pending requests</div></div>`;
       } catch(e) {}
     }
 
