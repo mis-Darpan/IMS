@@ -1,5 +1,5 @@
 // ============================================================
-// LITPAX IMS — app.js v4.7
+// LITPAX IMS — app.js v4.8
 // API URL: change here if redeployed
 // ============================================================
 
@@ -14,7 +14,7 @@ const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Catho
 const ROLES = {
   admin:   { pin: '1234', name: 'Admin',   homePage: 'dashboard',    pages: ['dashboard','stock','reorder','closing'] },
   ajay:    { pin: '0001', name: 'Ajay',    homePage: 'ajay-dash',    pages: ['ajay-dash','inward','outward','requests','items','opening','bom','indent','stock','reorder'] },
-  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','stock','items','bom'] },
+  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','wip','stock','items','bom'] },
 };
 
 let _currentRole = null;
@@ -587,6 +587,12 @@ async function openDispatchModal() {
   document.getElementById('dis-by').value = 'Sandeep';
   document.getElementById('dis-remarks').value = '';
   document.getElementById('dis-preview').innerHTML = '';
+  // Refresh stocks before opening
+  try {
+    const d = await api('getDashboard');
+    _stocks = d.stocks || [];
+    _items  = _stocks;
+  } catch(e) {}
   await populateBomSelect('dis-bom');
   document.getElementById('dispatch-modal').classList.add('open');
 }
@@ -1691,6 +1697,7 @@ const _sp = showPage;
 showPage = function(id) {
   _sp(id);
   if (id === 'opening')      loadOpeningStock();
+  if (id === 'wip')          loadWip();
   if (id === 'indent')       loadIndents();
   if (id === 'requests')     loadRequests();
   if (id === 'newrequest')   loadNewRequestPage();
@@ -1941,6 +1948,68 @@ async function loadAjayDash() {
 
     setDot('ok', 'Connected');
   } catch(e) { toast(e.message, 'err'); setDot('err', 'Error'); }
+}
+
+// ── WIP TRACKER ──
+async function loadWip() {
+  const tb = document.getElementById('wip-tb');
+  const em = document.getElementById('wip-empty');
+  if (tb) tb.innerHTML = `<tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr>`;
+  try {
+    const d = await api('getDashboard');
+    const stocks = d.stocks || [];
+    const wipItems = stocks.filter(s => s.wip > 0 || s.currentStock >= 0);
+
+    // Get outward and dispatch totals
+    const outRows = await api('getOutward', {});
+    const disRows = await api('getDispatch', {});
+
+    // Calculate totals per item
+    const manualOut = {}, dispUsed = {};
+    outRows.forEach(r => {
+      if (!(r.remarks||'').startsWith('Dispatch:')) {
+        manualOut[r.itemName] = (manualOut[r.itemName]||0) + (r.qty||0);
+      }
+    });
+
+    // Get BOM items to calculate dispatch consumption
+    const bomItemsAll = {};
+    for (const dis of disRows) {
+      try {
+        const bItems = await api('getBomItems', { bomName: dis.bomModel });
+        bItems.forEach(bi => {
+          dispUsed[bi.component] = (dispUsed[bi.component]||0) + (bi.qty * dis.qtyProduced);
+        });
+      } catch(e) {}
+    }
+
+    const wipData = stocks.map(s => ({
+      name: s.name,
+      cat: s.cat,
+      unit: s.unit,
+      totalOut: manualOut[s.name] || 0,
+      dispUsed: dispUsed[s.name] || 0,
+      wip: Math.max(0, (manualOut[s.name]||0) - (dispUsed[s.name]||0))
+    })).filter(s => s.totalOut > 0).sort((a,b) => b.wip - a.wip);
+
+    if (!wipData.length) {
+      if (tb) tb.innerHTML = '';
+      if (em) em.style.display = 'block';
+      return;
+    }
+    if (em) em.style.display = 'none';
+    if (tb) tb.innerHTML = wipData.map(s => `<tr>
+      <td style="font-weight:600;color:var(--navy);">${s.name}</td>
+      <td>${catBadge(s.cat)}</td>
+      <td style="color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
+      <td style="font-family:var(--mono);color:var(--orange);font-weight:600;">${s.totalOut}</td>
+      <td style="font-family:var(--mono);color:var(--green);font-weight:600;">${s.dispUsed}</td>
+      <td>
+        <span style="font-family:var(--mono);font-weight:800;font-size:16px;color:${s.wip>0?'var(--purple)':'var(--muted)'};">${s.wip}</span>
+        ${s.wip > 0 ? `<span style="font-size:10px;color:var(--purple);margin-left:4px;">In Production</span>` : ''}
+      </td>
+    </tr>`).join('');
+  } catch(e) { toast(e.message, 'err'); }
 }
 
 // ── SANDEEP DASHBOARD ──
