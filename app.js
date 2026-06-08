@@ -1,5 +1,5 @@
 // ============================================================
-// LITPAX IMS — app.js v4.8
+// LITPAX IMS — app.js v4.9
 // API URL: change here if redeployed
 // ============================================================
 
@@ -33,7 +33,6 @@ function doLogin() {
   const err = document.getElementById('login-err');
   if (!_selectedRole) { err.textContent = '❌ Pehle role select karo'; err.style.display = 'block'; return; }
   if (pin !== ROLES[_selectedRole].pin) { err.style.display = 'block'; err.textContent = '❌ Galat PIN — dobara try karo'; document.getElementById('login-pin').value = ''; return; }
-
   _currentRole = _selectedRole;
   localStorage.setItem('lpx_role', _currentRole);
   localStorage.setItem('lpx_name', ROLES[_currentRole].name);
@@ -51,22 +50,16 @@ function showApp() {
 function applyRoleUI() {
   const role = ROLES[_currentRole];
   if (!role) return;
-
-  // Show/hide nav items
   document.querySelectorAll('.ni[data-page]').forEach(ni => {
     const page = ni.getAttribute('data-page');
     ni.style.display = role.pages.includes(page) ? 'flex' : 'none';
   });
-
-  // Show/hide nav groups if all items hidden
   document.querySelectorAll('.ng').forEach(ng => {
     const items = ng.querySelectorAll('.ni[data-page]');
     const hasVisible = Array.from(items).some(i => i.style.display !== 'none');
     const label = ng.querySelector('.ng-label');
     if (label) label.style.display = hasVisible ? '' : 'none';
   });
-
-  // Update greeting with role name
   const greetEl = document.getElementById('dash-greeting');
   if (greetEl) {
     const now = new Date();
@@ -74,8 +67,6 @@ function applyRoleUI() {
     const g = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
     greetEl.textContent = `${g}, ${role.name} 👋`;
   }
-
-  // Show logout button
   const lb = document.getElementById('logout-btn');
   if (lb) lb.style.display = 'block';
   const rl = document.getElementById('logout-role-label');
@@ -98,16 +89,14 @@ function logout() {
 let _items   = [];
 let _stocks  = [];
 let _boms    = [];
-let _bomRows = []; // current bom being edited
+let _bomRows = [];
 let _editItemName = null;
 let _editBomName  = null;
 let _clRows  = [];
 let _clDate  = '';
 
 // ── UTILS ──
-function today() {
-  return new Date().toISOString().slice(0, 10);
-}
+function today() { return new Date().toISOString().slice(0, 10); }
 function fmtD(d) {
   if (!d) return '—';
   try { return new Date(d + 'T00:00:00').toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); }
@@ -152,8 +141,6 @@ window.onload = async function() {
   setVal('in-date-f', today());
   setVal('out-date-f', today());
   setDot('loading', 'Connecting...');
-
-  // Check saved role
   const savedRole = localStorage.getItem('lpx_role');
   if (savedRole && ROLES[savedRole]) {
     _currentRole = savedRole;
@@ -176,7 +163,8 @@ function setDot(state, label) {
 function showPage(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
+  const pg = document.getElementById('page-' + id);
+  if (pg) pg.classList.add('active');
   document.querySelectorAll('.ni').forEach(n => {
     if (n.getAttribute('onclick') === `showPage('${id}')`) n.classList.add('active');
   });
@@ -191,6 +179,12 @@ function showPage(id) {
   if (id === 'stock')        loadStock();
   if (id === 'reorder')      loadReorder();
   if (id === 'closing')      { document.getElementById('cl-date').value = today(); genClosing(); }
+  if (id === 'opening')      loadOpeningStock();
+  if (id === 'indent')       loadIndents();
+  if (id === 'requests')     loadRequests();
+  if (id === 'wip')          loadWip();
+  if (id === 'ajay-dash')    loadAjayDash();
+  if (id === 'sandeep-dash') loadSandeepDash();
 }
 
 // ── BADGES ──
@@ -207,88 +201,36 @@ function depBadge(d) {
   return d ? `<span class="badge b-dep">${d}</span>` : '—';
 }
 
-// ── DASHBOARD ──
+// ── DASHBOARD (ADMIN) ──
 async function loadDash() {
   const now = new Date();
   const hr = now.getHours();
   const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
   const greetEl = document.getElementById('dash-greeting');
   if (greetEl) {
-    const rname = _currentRole ? ROLES[_currentRole].name : 'Sahil / Sneha';
+    const rname = _currentRole ? ROLES[_currentRole].name : 'Admin';
     greetEl.textContent = `${greeting}, ${rname} 👋`;
   }
   setEl('dash-date', now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
-  // Role based routing
   if (_currentRole === 'ajay') { await loadAjayDash(); return; }
   if (_currentRole === 'sandeep') { await loadSandeepDash(); return; }
   try {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
     setEl('s-total', d.totalItems || 0);
-    setEl('s-ro', d.reorderCount || 0);
-    setEl('s-in', d.todayIn || 0);
-    setEl('s-out', d.todayOut || 0);
-    setEl('s-wip', (d.wipItems||[]).length || 0);
+    setEl('s-ro',    d.reorderCount || 0);
+    setEl('s-in',    d.todayIn || 0);
+    setEl('s-out',   d.todayOut || 0);
+    setEl('s-wip',   (d.wipItems||[]).length || 0);
 
-    // Alert badge on dashboard
     const dab = document.getElementById('d-alert-badge');
-    if (dab) {
-      if (d.reorderCount > 0) { dab.style.display='inline'; dab.textContent=d.reorderCount; }
-      else dab.style.display='none';
-    }
-
+    if (dab) { dab.style.display = d.reorderCount > 0 ? 'inline' : 'none'; dab.textContent = d.reorderCount; }
     const nb = document.getElementById('nb');
-    if (nb) {
-      if (d.reorderCount > 0) { nb.style.display = 'inline'; nb.textContent = d.reorderCount; }
-      else nb.style.display = 'none';
-    }
-
-    // Pending indents badge
+    if (nb) { nb.style.display = d.reorderCount > 0 ? 'inline' : 'none'; nb.textContent = d.reorderCount; }
     const nbi = document.getElementById('nb-indent');
-    if (nbi) {
-      if (d.pendingIndents > 0) { nbi.style.display = 'inline'; nbi.textContent = d.pendingIndents; }
-      else nbi.style.display = 'none';
-    }
-    // Pending requests badge
+    if (nbi) { nbi.style.display = d.pendingIndents > 0 ? 'inline' : 'none'; nbi.textContent = d.pendingIndents; }
     const nbr = document.getElementById('nb-req');
-    if (nbr) {
-      if (d.pendingRequests > 0) { nbr.style.display = 'inline'; nbr.textContent = d.pendingRequests; }
-      else nbr.style.display = 'none';
-    }
-
-    // Alerts
-    const al = document.getElementById('d-alerts');
-    if (al) {
-      if (!d.alerts || !d.alerts.length) {
-        al.innerHTML = `<div class="empty"><div class="ei">✅</div><div class="et">All stocks healthy!</div></div>`;
-      } else {
-        al.innerHTML = d.alerts.map(s => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
-          <div>
-            <div style="font-weight:600;font-size:13px;">${s.name}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">ROP: <b>${s.reorderPoint}</b> | Stock: <b>${s.currentStock}</b> | MIT: <b>${s.mit || 0}</b></div>
-          </div>
-          ${stBadge(s.status)}
-        </div>`).join('');
-      }
-    }
-
-    // Recent txns
-    const rt = document.getElementById('d-recent');
-    if (rt) {
-      if (!d.recentTxns || !d.recentTxns.length) {
-        rt.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No transactions today</div></div>`;
-      } else {
-        rt.innerHTML = d.recentTxns.map(t => `
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);">
-          <div>
-            <div style="font-weight:500;font-size:13px;">${t.itemName || t.bomModel || '—'}</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:1px;">${fmtDT(t.ts)}</div>
-          </div>
-          <span class="badge ${t.txnType === 'IN' ? 'b-in' : 'b-out'}">${t.txnType === 'IN' ? '↑ IN' : '↓ OUT'} ${t.qty || t.qtyProduced || ''}</span>
-        </div>`).join('');
-      }
-    }
+    if (nbr) { nbr.style.display = d.pendingRequests > 0 ? 'inline' : 'none'; nbr.textContent = d.pendingRequests; }
 
     // Store Live Stock
     const storeWrap = document.getElementById('d-store');
@@ -314,9 +256,7 @@ async function loadDash() {
                 <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
                 <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
                   <span style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--navy);">${s.currentStock}</span>
-                  <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;">
-                    <div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div>
-                  </div>
+                  <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;"><div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div></div>
                 </td>
                 <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
                   ${s.wip > 0 ? `<span style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--purple);">${s.wip}</span>` : '<span style="color:var(--light);">—</span>'}
@@ -330,48 +270,27 @@ async function loadDash() {
       }
     }
 
-    // WIP Section
-    const wipWrap = document.getElementById('d-wip');
-    if (wipWrap) {
-      if (!d.wipItems || !d.wipItems.length) {
-        wipWrap.innerHTML = `<div class="empty"><div class="ei">🏭</div><div class="et">No WIP — In Production kuch nahi</div></div>`;
+    // Recent txns
+    const rt = document.getElementById('d-recent');
+    if (rt) {
+      if (!d.recentTxns || !d.recentTxns.length) {
+        rt.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No transactions today</div></div>`;
       } else {
-        wipWrap.innerHTML = d.wipItems.map(s => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
-            <div>
-              <div style="font-weight:600;font-size:13px;">${s.name}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Store: <b style="color:var(--navy)">${s.currentStock} ${s.unit||''}</b></div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--purple);">${s.wip}</div>
-              <div style="font-size:10px;color:var(--muted);">In Production</div>
-            </div>
-          </div>`).join('');
+        rt.innerHTML = d.recentTxns.map(t => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);">
+          <div>
+            <div style="font-weight:500;font-size:13px;">${t.itemName || t.bomModel || '—'}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:1px;">${fmtDT(t.ts)}</div>
+          </div>
+          <span class="badge ${t.txnType === 'IN' ? 'b-in' : 'b-out'}">${t.txnType === 'IN' ? '↑ IN' : '↓ OUT'} ${t.qty || t.qtyProduced || ''}</span>
+        </div>`).join('');
       }
     }
 
-    // FG Section
-    const fgWrap = document.getElementById('d-fg');
-    if (fgWrap) {
-      if (!d.fg || !d.fg.length) {
-        fgWrap.innerHTML = `<div class="empty"><div class="ei">📦</div><div class="et">No FG dispatched yet</div></div>`;
-      } else {
-        fgWrap.innerHTML = d.fg.map(f => `
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);">
-            <div>
-              <div style="font-weight:600;font-size:13px;">${f.model}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">Last: ${fmtD(f.lastDate)}</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-family:var(--mono);font-size:18px;font-weight:700;color:var(--green);">${f.totalProduced}</div>
-              <div style="font-size:10px;color:var(--muted);">Units Produced</div>
-            </div>
-          </div>`).join('');
-      }
-    }
-
-    // Render stock chart
-    renderStockChart(d.stocks || []);
+    // ── 3 CHARTS ──
+    renderReorderChart(d.stocks || []);
+    renderWipChart(d.wipItems || []);
+    renderCategoryChart(d.stocks || []);
 
     setDot('ok', 'Connected');
   } catch(e) {
@@ -542,7 +461,6 @@ async function saveOutward() {
     toast('Outward saved ✓', 'ok');
     closeM('outward-modal');
     _stocks = [];
-    // Auto close pending request if came from fulfillRequest
     if (window._pendingReqId) {
       api('closeRequest', { id: window._pendingReqId, closedBy: document.getElementById('out-by').value || 'Ajay' })
         .then(() => { window._pendingReqId = null; loadRequests(); })
@@ -587,7 +505,6 @@ async function openDispatchModal() {
   document.getElementById('dis-by').value = 'Sandeep';
   document.getElementById('dis-remarks').value = '';
   document.getElementById('dis-preview').innerHTML = '';
-  // Refresh stocks before opening
   try {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
@@ -607,7 +524,6 @@ async function updDispatchPreview() {
     if (!items.length) { preview.innerHTML = '<div style="color:var(--muted);font-size:12px;margin-top:10px;">No components found for this BOM</div>'; return; }
     const stockMap = {};
     _stocks.forEach(s => { stockMap[s.name] = s; });
-
     preview.innerHTML = `<div class="bom-preview">
       <div class="bp-title">Components required (×${qty})</div>
       ${items.map(bi => {
@@ -721,20 +637,15 @@ let _selCat = '', _selBrand = '';
 
 function selectCat(cat) {
   _selCat = cat; _selBrand = '';
-  // Update cat buttons
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-
   const brands = CAT_BRANDS[cat] || ['Other'];
   const brandGrid = document.getElementById('brand-grid');
   const brandCustom = document.getElementById('f-brand-custom');
-
   if (brands.length === 1 && brands[0] === '—') {
-    // No brand needed - skip to model
     document.getElementById('brand-section').style.display = 'none';
     document.getElementById('model-section').style.display = 'block';
     document.getElementById('item-details').style.display = 'block';
-    // Set default unit
     const unitSel = document.getElementById('f-unit');
     if (unitSel) unitSel.value = CAT_UNITS[cat] || 'Pcs';
     _selBrand = cat;
@@ -755,18 +666,11 @@ function selectBrand(brand) {
   _selBrand = brand;
   document.querySelectorAll('.brand-btn').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-
   const brandCustom = document.getElementById('f-brand-custom');
-  if (brand === 'Other') {
-    brandCustom.style.display = 'block';
-    brandCustom.focus();
-  } else {
-    brandCustom.style.display = 'none';
-  }
-
+  if (brand === 'Other') { brandCustom.style.display = 'block'; brandCustom.focus(); }
+  else brandCustom.style.display = 'none';
   document.getElementById('model-section').style.display = 'block';
   document.getElementById('item-details').style.display = 'block';
-  // Set default unit
   const unitSel = document.getElementById('f-unit');
   if (unitSel) unitSel.value = CAT_UNITS[_selCat] || 'Pcs';
   updROP();
@@ -778,18 +682,15 @@ function updItemName() {
     ? (document.getElementById('f-brand-custom').value.trim() || 'Other')
     : _selBrand;
   const model = (document.getElementById('f-model').value || '').trim();
-
   let name = '';
   if (['Consumable','Packaging','Other'].includes(_selCat)) {
     name = model || _selCat;
   } else {
     name = [_selCat, brand, model].filter(Boolean).join(' ');
   }
-
   const preview = document.getElementById('f-name-preview');
   const nameInput = document.getElementById('f-name');
   const namePreviewDiv = document.getElementById('name-preview');
-
   if (name && model) {
     preview.textContent = name;
     if (nameInput) nameInput.value = name;
@@ -802,14 +703,10 @@ function updItemName() {
 function openItemModal(name) {
   _editItemName = name || null;
   _selCat = ''; _selBrand = '';
-
   if (name) {
-    // Edit mode — show simple form
     const item = _items.find(i => i.name === name);
     if (!item) return;
     document.getElementById('im-title').textContent = 'Edit Item';
-
-    // Hide step UI, show edit UI
     document.getElementById('cat-grid').style.display = 'none';
     document.getElementById('brand-section').style.display = 'none';
     document.getElementById('model-section').style.display = 'none';
@@ -825,7 +722,6 @@ function openItemModal(name) {
     document.getElementById('f-remarks').value = item.remarks || '';
   } else {
     document.getElementById('im-title').textContent = 'Add Item';
-    // Reset all
     document.getElementById('cat-grid').style.display = 'grid';
     document.getElementById('brand-section').style.display = 'none';
     document.getElementById('model-section').style.display = 'none';
@@ -851,7 +747,6 @@ function updROP() {
   const u   = document.getElementById('f-unit').value || 'units';
   const max = Math.ceil(a * l * s);
   const rop = Math.ceil(max / 2);
-  // Store computed values in hidden fields
   document.getElementById('f-max-val').value = max;
   document.getElementById('f-rop-val').value = rop;
   document.getElementById('rop-prev').innerHTML = `
@@ -886,11 +781,9 @@ async function saveItem() {
   const moqEl = document.getElementById('f-moq');
   const moq  = moqEl && moqEl.value ? Number(moqEl.value) : rop;
   const payload = {
-    name, cat: _selCat || _editItemName && (_items.find(i=>i.name===_editItemName)||{}).cat || 'Other',
+    name, cat: _selCat || (_editItemName && (_items.find(i=>i.name===_editItemName)||{}).cat) || 'Other',
     unit: document.getElementById('f-unit').value,
-    adc, lt, sf,
-    moq,
-    maxL,
+    adc, lt, sf, moq, maxL,
     mit:  Number(document.getElementById('f-mit').value) || 0,
     remarks: document.getElementById('f-remarks').value,
   };
@@ -973,8 +866,6 @@ async function openBomEdit(bomName) {
   _editBomName = bomName;
   document.getElementById('bom-edit-title').textContent = `Edit BOM: ${bomName}`;
   document.getElementById('bom-edit-modal').classList.add('open');
-
-  // Ensure items are loaded first
   if (!_items.length) {
     try {
       const d = await api('getDashboard');
@@ -982,8 +873,6 @@ async function openBomEdit(bomName) {
       _items  = _stocks;
     } catch(e) {}
   }
-
-  // Load existing BOM items
   try {
     const items = await api('getBomItems', { bomName });
     _bomRows = items.map(i => ({ component: i.component, qty: i.qty, unit: i.unit }));
@@ -998,7 +887,6 @@ async function openBomEdit(bomName) {
 function renderBomRows() {
   const wrap = document.getElementById('bom-rows-wrap');
   const itemOpts = _items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
-
   wrap.innerHTML = _bomRows.map((row, i) => `
     <div class="bom-row" id="brow-${i}">
       <select class="inp" onchange="_bomRows[${i}].component=this.value">
@@ -1016,22 +904,14 @@ function renderBomRows() {
       <button class="btn brd bsm" onclick="removeBomRow(${i})">✕</button>
     </div>
   `).join('');
-
-  // Set selected values
   _bomRows.forEach((row, i) => {
     const sel = wrap.querySelector(`#brow-${i} select`);
     if (sel && row.component) sel.value = row.component;
   });
 }
 
-function addBomRow() {
-  _bomRows.push({ component: '', qty: '', unit: 'Pcs' });
-  renderBomRows();
-}
-function removeBomRow(i) {
-  _bomRows.splice(i, 1);
-  renderBomRows();
-}
+function addBomRow() { _bomRows.push({ component: '', qty: '', unit: 'Pcs' }); renderBomRows(); }
+function removeBomRow(i) { _bomRows.splice(i, 1); renderBomRows(); }
 
 async function saveBomItems() {
   const valid = _bomRows.filter(r => r.component && r.qty > 0);
@@ -1057,7 +937,7 @@ async function delBom(bomName) {
 }
 
 // ── STOCK TREE VIEW ──
-let _stockViewMode = 'table'; // 'table' or 'tree'
+let _stockViewMode = 'table';
 
 function toggleStockView() {
   _stockViewMode = _stockViewMode === 'table' ? 'tree' : 'table';
@@ -1076,9 +956,6 @@ function toggleStockView() {
 }
 
 function parseBrand(item) {
-  // Extract brand from item name — second word is brand
-  // e.g. "BMS JK 24S 40Amp" → brand = "JK"
-  // e.g. "Cells DMEGC 18650" → brand = "DMEGC"
   const parts = item.name.split(' ');
   if (parts.length >= 2) return parts[1];
   return item.cat || 'Other';
@@ -1090,8 +967,6 @@ function renderStockTree(stocks) {
     wrap.innerHTML = `<div class="empty"><div class="ei">📈</div><div class="et">No data</div></div>`;
     return;
   }
-
-  // Group by Category → Brand → Models
   const tree = {};
   stocks.forEach(s => {
     const cat   = s.cat || 'Other';
@@ -1100,14 +975,12 @@ function renderStockTree(stocks) {
     if (!tree[cat][brand]) tree[cat][brand] = [];
     tree[cat][brand].push(s);
   });
-
   let html = '';
   Object.keys(tree).sort().forEach(cat => {
     const brands = tree[cat];
-    const catTotal = Object.values(brands).flat().reduce((s,i) => s + i.currentStock, 0);
+    const catTotal  = Object.values(brands).flat().reduce((s,i) => s + i.currentStock, 0);
     const catAlerts = Object.values(brands).flat().filter(i => i.status !== 'OK').length;
     const catItems  = Object.values(brands).flat().length;
-
     html += `<div class="tree-cat">
       <div class="tree-cat-header" onclick="toggleTree('cat-${cat}')">
         <div class="tree-cat-title">
@@ -1122,12 +995,10 @@ function renderStockTree(stocks) {
         </div>
       </div>
       <div id="cat-${cat}" style="display:none;">`;
-
     Object.keys(brands).sort().forEach(brand => {
       const models = brands[brand];
-      const brandTotal = models.reduce((s,i) => s + i.currentStock, 0);
+      const brandTotal  = models.reduce((s,i) => s + i.currentStock, 0);
       const brandAlerts = models.filter(i => i.status !== 'OK').length;
-
       html += `<div class="tree-brand">
         <div class="tree-brand-header" onclick="toggleTree('brand-${cat}-${brand}')">
           <div class="tree-brand-title">
@@ -1171,10 +1042,8 @@ function renderStockTree(stocks) {
         </div>
       </div>`;
     });
-
     html += `</div></div>`;
   });
-
   wrap.innerHTML = html;
 }
 
@@ -1182,13 +1051,8 @@ function toggleTree(id) {
   const el = document.getElementById(id);
   const arr = document.getElementById('arr-' + id);
   if (!el) return;
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    if (arr) arr.classList.add('open');
-  } else {
-    el.style.display = 'none';
-    if (arr) arr.classList.remove('open');
-  }
+  if (el.style.display === 'none') { el.style.display = 'block'; if (arr) arr.classList.add('open'); }
+  else { el.style.display = 'none'; if (arr) arr.classList.remove('open'); }
 }
 
 function getCatIcon(cat) {
@@ -1217,10 +1081,7 @@ function filterStock() {
   const em = document.getElementById('stock-empty');
   if (!fl.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
   em.style.display = 'none';
-
-  // Update tree if visible
   if (_stockViewMode === 'tree') { renderStockTree(fl); return; }
-
   tb.innerHTML = fl.map(item => {
     const brand = parseBrand(item);
     const pct = item.maxL > 0 ? Math.min(100, Math.round(item.currentStock / item.maxL * 100)) : 0;
@@ -1321,32 +1182,25 @@ async function genClosing() {
   } catch(e) { toast(e.message, 'err'); }
 }
 
-// ── CLOSING TAB SWITCH ──
 function switchClTab(tab) {
   const single = document.getElementById('cl-single-wrap');
   const range  = document.getElementById('cl-range-wrap');
   const btnS   = document.getElementById('cl-tab-single');
   const btnR   = document.getElementById('cl-tab-range');
-
   if (tab === 'single') {
-    single.style.display = 'block';
-    range.style.display  = 'none';
+    single.style.display = 'block'; range.style.display = 'none';
     btnS.style.borderColor = 'var(--accent)'; btnS.style.color = 'var(--accent)';
     btnR.style.borderColor = ''; btnR.style.color = '';
   } else {
-    single.style.display = 'none';
-    range.style.display  = 'block';
+    single.style.display = 'none'; range.style.display = 'block';
     btnR.style.borderColor = 'var(--accent)'; btnR.style.color = 'var(--accent)';
     btnS.style.borderColor = ''; btnS.style.color = '';
-    // Default last 7 days
-    const t = new Date();
-    const f = new Date(t); f.setDate(f.getDate() - 6);
+    const t = new Date(); const f = new Date(t); f.setDate(f.getDate() - 6);
     document.getElementById('cl-to').value   = t.toISOString().slice(0,10);
     document.getElementById('cl-from').value = f.toISOString().slice(0,10);
   }
 }
 
-// ── CLOSING HISTORY ──
 let _historyData = [];
 
 async function genHistory() {
@@ -1354,35 +1208,25 @@ async function genHistory() {
   const to   = document.getElementById('cl-to').value;
   if (!from || !to) { toast('Please select a date range', 'err'); return; }
   if (from > to)    { toast('From date must be before To date', 'err'); return; }
-
   const wrap = document.getElementById('cl-history-content');
   wrap.innerHTML = `<div class="empty"><div class="ei">⏳</div><div class="et">Loading history...</div></div>`;
-
   try {
     const data = await api('getClosingHistory', { from, to });
     _historyData = data;
-
     if (!data.length) {
       wrap.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No snapshots found</div><div class="es">Pehle Daily Closing save karo</div></div>`;
       return;
     }
-
-    // Summary bar
     const totalDays = data.length;
     const totalIn   = data.reduce((s,d) => s + d.totalIn,  0);
     const totalOut  = data.reduce((s,d) => s + d.totalOut, 0);
-
-    let html = `
-      <div class="cl-sum" style="margin-bottom:16px;">
+    let html = `<div class="cl-sum" style="margin-bottom:16px;">
         <div class="sc bl"><div class="sc-bar"></div><div class="sc-icon">📅</div><div class="sc-label">Days</div><div class="sc-val">${totalDays}</div></div>
         <div class="sc gn"><div class="sc-bar"></div><div class="sc-icon">📥</div><div class="sc-label">Total Inward</div><div class="sc-val">${totalIn}</div></div>
         <div class="sc rd"><div class="sc-bar"></div><div class="sc-icon">📤</div><div class="sc-label">Total Outward</div><div class="sc-val">${totalOut}</div></div>
       </div>`;
-
-    // Day-wise accordion
     data.forEach(day => {
-      html += `
-        <div class="card" style="margin-bottom:10px;">
+      html += `<div class="card" style="margin-bottom:10px;">
           <div class="ch" style="cursor:pointer;" onclick="toggleDay('day-${day.date}')">
             <div style="display:flex;align-items:center;gap:12px;">
               <h2>📅 ${fmtD(day.date)}</h2>
@@ -1392,15 +1236,9 @@ async function genHistory() {
             <span style="color:var(--muted);font-size:13px;" id="arrow-${day.date}">▼</span>
           </div>
           <div id="day-${day.date}" style="display:none;">
-            <div class="tw">
-              <table>
-                <thead><tr>
-                  <th>Item</th><th>Unit</th><th>Opening</th>
-                  <th>IN</th><th>OUT</th><th>Closing</th>
-                  <th>ROP</th><th>Status</th>
-                </tr></thead>
-                <tbody>
-                  ${day.rows.map(r => `<tr>
+            <div class="tw"><table>
+                <thead><tr><th>Item</th><th>Unit</th><th>Opening</th><th>IN</th><th>OUT</th><th>Closing</th><th>ROP</th><th>Status</th></tr></thead>
+                <tbody>${day.rows.map(r => `<tr>
                     <td style="font-weight:600;">${r.name}</td>
                     <td style="color:var(--muted);font-size:12px;">${r.unit||'—'}</td>
                     <td style="font-family:var(--mono);">${r.opening}</td>
@@ -1411,12 +1249,10 @@ async function genHistory() {
                     <td>${stBadge(r.status)}</td>
                   </tr>`).join('')}
                 </tbody>
-              </table>
-            </div>
+              </table></div>
           </div>
         </div>`;
     });
-
     wrap.innerHTML = html;
   } catch(e) { toast(e.message, 'err'); }
 }
@@ -1425,13 +1261,8 @@ function toggleDay(id) {
   const el  = document.getElementById(id);
   const date = id.replace('day-', '');
   const arr = document.getElementById('arrow-' + date);
-  if (el.style.display === 'none') {
-    el.style.display = 'block';
-    if (arr) arr.textContent = '▲';
-  } else {
-    el.style.display = 'none';
-    if (arr) arr.textContent = '▼';
-  }
+  if (el.style.display === 'none') { el.style.display = 'block'; if (arr) arr.textContent = '▲'; }
+  else { el.style.display = 'none'; if (arr) arr.textContent = '▼'; }
 }
 
 function exportHistoryCSV() {
@@ -1480,9 +1311,7 @@ async function populateBomSelect(id) {
   }
 }
 
-function closeM(id) {
-  document.getElementById(id).classList.remove('open');
-}
+function closeM(id) { document.getElementById(id).classList.remove('open'); }
 
 let _tt;
 function toast(msg, type) {
@@ -1492,8 +1321,6 @@ function toast(msg, type) {
   clearTimeout(_tt);
   _tt = setTimeout(() => t.className = '', 3500);
 }
-
-// Modals only close via Save or Cancel buttons
 
 // ============================================================
 // OPENING STOCK
@@ -1510,10 +1337,8 @@ async function loadOpeningStock() {
     _openingData = await api('getOpeningStock');
     const openMap = {};
     _openingData.forEach(o => { openMap[o.name] = o; });
-
     const tb = document.getElementById('opening-tb');
     if (!_items.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted);">Add items first</td></tr>'; return; }
-
     tb.innerHTML = _items.map(item => {
       const existing = openMap[item.name] || {};
       return `<tr>
@@ -1539,7 +1364,6 @@ async function saveOpeningStock() {
       remarks: (document.getElementById('rem-'+key)||{}).value || '',
     };
   }).filter(i => i.qty > 0 || i.sku);
-
   if (!items.length) { toast('No data entered', 'warn'); return; }
   try {
     await api('setOpeningStock', { items });
@@ -1651,7 +1475,6 @@ async function confirmReceive() {
   const btn = document.getElementById('recv-btn');
   btn.disabled = true; btn.textContent = 'Processing...';
   try {
-    // Add inward entry
     await api('addInward', {
       itemName:  _currentIndent.itemName,
       qty, date, supplier, invoice, by,
@@ -1679,33 +1502,6 @@ async function cancelIndent(id) {
   } catch(e) { toast(e.message, 'err'); }
 }
 
-// ── UPDATE showPage for new pages ──
-const _origShowPage = showPage;
-// Override showPage to handle new pages
-const showPageOrig = showPage;
-window._showPageExtended = true;
-
-// Patch nav handler
-document.querySelectorAll('.ni').forEach(n => {
-  const oc = n.getAttribute('onclick');
-  if (oc && oc.includes("'opening'")) n.addEventListener('click', () => { loadOpeningStock(); });
-  if (oc && oc.includes("'indent'"))  n.addEventListener('click', () => { loadIndents(); });
-});
-
-// Also patch showPage to load these
-const _sp = showPage;
-showPage = function(id) {
-  _sp(id);
-  if (id === 'opening')      loadOpeningStock();
-  if (id === 'wip')          loadWip();
-  if (id === 'indent')       loadIndents();
-  if (id === 'requests')     loadRequests();
-  if (id === 'newrequest')   loadNewRequestPage();
-  if (id === 'ajay-dash')    loadAjayDash();
-  if (id === 'sandeep-dash') loadSandeepDash();
-};
-
-
 // ============================================================
 // MATERIAL REQUESTS
 // ============================================================
@@ -1726,7 +1522,6 @@ function renderRequests() {
   const em = document.getElementById('req-empty');
   if (!_requests.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
   em.style.display = 'none';
-
   tb.innerHTML = _requests.map(r => {
     const stColor = r.status === 'Closed' ? 'b-ok' : r.status === 'Cancelled' ? 'b-ro' : 'b-dep';
     const isPending = r.status === 'Pending';
@@ -1750,9 +1545,7 @@ function renderRequests() {
   }).join('');
 }
 
-// Ajay fulfills request — opens outward modal prefilled
 function fulfillRequest(reqId, itemName, qty, department) {
-  // Pre-fill outward modal
   populateItemSelect('out-item');
   setTimeout(() => {
     document.getElementById('out-item').value = itemName;
@@ -1762,7 +1555,6 @@ function fulfillRequest(reqId, itemName, qty, department) {
     document.getElementById('out-by').value = 'Ajay';
     document.getElementById('out-remarks').value = 'Req: ' + reqId;
     updOutwardInfo();
-    // Store reqId to close after outward saved
     window._pendingReqId = reqId;
     document.getElementById('outward-modal').classList.add('open');
     showPage('outward');
@@ -1779,77 +1571,13 @@ async function cancelRequest(id) {
   } catch(e) { toast(e.message, 'err'); }
 }
 
-// ── REQUEST MATERIAL (Production Worker) ──
-async function loadNewRequestPage() {
-  if (!_items.length) {
-    try {
-      const d = await api('getDashboard');
-      _stocks = d.stocks || []; _items = _stocks;
-    } catch(e) {}
-  }
-  const sel = document.getElementById('nr-item');
-  if (sel) {
-    sel.innerHTML = '<option value="">Select Item</option>' + _items.map(i => `<option value="${i.name}">${i.name}</option>`).join('');
-    sel.onchange = function() {
-      const name = this.value;
-      const inf  = document.getElementById('nr-stock-info');
-      const av   = document.getElementById('nr-avail');
-      if (!name) { inf.style.display = 'none'; return; }
-      const s = _stocks.find(x => x.name === name);
-      if (s) {
-        av.textContent = s.currentStock + ' ' + (s.unit||'');
-        inf.style.display = 'block';
-      }
-    };
-  }
-}
-
-async function submitRequest() {
-  const itemName = document.getElementById('nr-item').value;
-  const qty      = Number(document.getElementById('nr-qty').value);
-  const dept     = document.getElementById('nr-dept').value;
-  const by       = document.getElementById('nr-by').value.trim();
-
-  if (!itemName)       { toast('Please select an item', 'err'); return; }
-  if (!qty || qty <= 0){ toast('Quantity daalo', 'err'); return; }
-  if (!dept)           { toast('Please select a department', 'err'); return; }
-  if (!by)             { toast('Please enter your name', 'err'); return; }
-
-  const btn = document.querySelector('#page-newrequest .btn.bp');
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
-
-  try {
-    const r = await api('addRequest', {
-      itemName, qty,
-      department:  dept,
-      requestedBy: by,
-      remarks:     document.getElementById('nr-remarks').value,
-    });
-    toast('Request submitted ✓ — Store manager will be notified', 'ok');
-    // Reset form
-    document.getElementById('nr-item').value = '';
-    document.getElementById('nr-qty').value = '';
-    document.getElementById('nr-dept').value = '';
-    document.getElementById('nr-by').value = '';
-    document.getElementById('nr-remarks').value = '';
-    document.getElementById('nr-stock-info').style.display = 'none';
-    loadDash();
-  } catch(e) { toast(e.message, 'err'); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = '📤 Submit Request'; } }
-}
-
 // ── AJAY DASHBOARD ──
 function toggleAjayOK() {
   const list = document.getElementById('aj-ok-list');
   const arrow = document.getElementById('aj-ok-arrow');
   if (!list) return;
-  if (list.style.display === 'none') {
-    list.style.display = 'block';
-    if (arrow) arrow.textContent = '▲ Hide';
-  } else {
-    list.style.display = 'none';
-    if (arrow) arrow.textContent = '▼ Show';
-  }
+  if (list.style.display === 'none') { list.style.display = 'block'; if (arrow) arrow.textContent = '▲ Hide'; }
+  else { list.style.display = 'none'; if (arrow) arrow.textContent = '▼ Show'; }
 }
 
 async function loadAjayDash() {
@@ -1863,16 +1591,13 @@ async function loadAjayDash() {
   try {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
-
-    // KPI cards
     const crit  = (d.stocks||[]).filter(s => s.status === 'Critical');
     const reord = (d.stocks||[]).filter(s => s.status === 'Reorder');
-    setEl('aj-total',    d.totalItems || 0);
-    setEl('aj-critical', crit.length);
-    setEl('aj-reorder',  reord.length);
+    setEl('aj-total',     d.totalItems || 0);
+    setEl('aj-critical',  crit.length);
+    setEl('aj-reorder',   reord.length);
     setEl('aj-req-count', d.pendingRequests || 0);
 
-    // Sidebar badges
     const nb = document.getElementById('nb');
     if (nb) { nb.style.display = d.reorderCount>0?'inline':'none'; nb.textContent = d.reorderCount; }
     const nbr = document.getElementById('nb-req');
@@ -1880,7 +1605,7 @@ async function loadAjayDash() {
     const ajrb = document.getElementById('aj-req-badge');
     if (ajrb) { ajrb.style.display = d.pendingRequests>0?'inline':'none'; ajrb.textContent = d.pendingRequests; }
 
-    // Today Inward — grouped by item name, sorted
+    // Today Inward
     const inL = document.getElementById('aj-inward-list');
     const inC = document.getElementById('aj-in-count');
     try {
@@ -1901,7 +1626,7 @@ async function loadAjayDash() {
         : `<div class="empty" style="padding:20px;"><div class="ei">📥</div><div class="et">No inward today</div></div>`;
     } catch(e) {}
 
-    // Today Outward — grouped by item, exclude dispatch, sorted
+    // Today Outward
     const outL = document.getElementById('aj-outward-list');
     const outC = document.getElementById('aj-out-count');
     try {
@@ -1958,22 +1683,14 @@ async function loadWip() {
   try {
     const d = await api('getDashboard');
     const stocks = d.stocks || [];
-    const wipItems = stocks.filter(s => s.wip > 0 || s.currentStock >= 0);
-
-    // Get outward and dispatch totals
     const outRows = await api('getOutward', {});
     const disRows = await api('getDispatch', {});
-
-    // Calculate totals per item
     const manualOut = {}, dispUsed = {};
     outRows.forEach(r => {
       if (!(r.remarks||'').startsWith('Dispatch:')) {
         manualOut[r.itemName] = (manualOut[r.itemName]||0) + (r.qty||0);
       }
     });
-
-    // Get BOM items to calculate dispatch consumption
-    const bomItemsAll = {};
     for (const dis of disRows) {
       try {
         const bItems = await api('getBomItems', { bomName: dis.bomModel });
@@ -1982,21 +1699,14 @@ async function loadWip() {
         });
       } catch(e) {}
     }
-
     const wipData = stocks.map(s => ({
-      name: s.name,
-      cat: s.cat,
-      unit: s.unit,
+      name: s.name, cat: s.cat, unit: s.unit,
       totalOut: manualOut[s.name] || 0,
       dispUsed: dispUsed[s.name] || 0,
       wip: Math.max(0, (manualOut[s.name]||0) - (dispUsed[s.name]||0))
     })).filter(s => s.totalOut > 0).sort((a,b) => b.wip - a.wip);
 
-    if (!wipData.length) {
-      if (tb) tb.innerHTML = '';
-      if (em) em.style.display = 'block';
-      return;
-    }
+    if (!wipData.length) { if (tb) tb.innerHTML = ''; if (em) em.style.display = 'block'; return; }
     if (em) em.style.display = 'none';
     if (tb) tb.innerHTML = wipData.map(s => `<tr>
       <td style="font-weight:600;color:var(--navy);">${s.name}</td>
@@ -2022,7 +1732,6 @@ async function loadSandeepDash() {
   const dtEl = document.getElementById('sandeep-date');
   if (dtEl) dtEl.textContent = now.toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
-  // Helper: expandable category row
   function catSection(id, cat, icon, items, renderDetail) {
     const total = items.reduce((s,i) => s + (i.qty||i.wip||0), 0);
     const unit  = items[0] ? (items[0].unit||'') : '';
@@ -2039,9 +1748,7 @@ async function loadSandeepDash() {
           <span id="arr-${id}" style="font-size:11px;color:var(--muted);">▼</span>
         </div>
       </div>
-      <div id="${id}" style="display:none;">
-        ${renderDetail(items)}
-      </div>
+      <div id="${id}" style="display:none;">${renderDetail(items)}</div>
     </div>`;
   }
 
@@ -2049,14 +1756,12 @@ async function loadSandeepDash() {
     const d = await api('getDashboard');
     _stocks = d.stocks || [];
 
-    // ── SECTION 1: Today Received from Store ──
+    // Section 1: Today Received
     const issueEl = document.getElementById('sd-issue-section');
     const issueSummEl = document.getElementById('sd-issue-summary');
     try {
       const outRows = await api('getOutward', { date: today() });
       const issued = outRows.filter(r => !(r.remarks||'').startsWith('Dispatch:'));
-
-      // Group by category then item
       const catMap = {};
       issued.forEach(r => {
         const s = _stocks.find(x => x.name === r.itemName);
@@ -2065,90 +1770,77 @@ async function loadSandeepDash() {
         if (!catMap[cat][r.itemName]) catMap[cat][r.itemName] = { qty: 0, unit: r.unit };
         catMap[cat][r.itemName].qty += r.qty;
       });
-
       const cats = Object.keys(catMap).sort();
       if (issueSummEl) issueSummEl.textContent = issued.length ? `${cats.length} categories, ${issued.length} entries` : '';
-
       if (!cats.length) {
         if (issueEl) issueEl.innerHTML = `<div class="empty" style="padding:24px;"><div class="ei">📤</div><div class="et">Nothing received today</div></div>`;
       } else {
         const html = cats.map(cat => {
           const items = Object.entries(catMap[cat]).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,v])=>({name,qty:v.qty,unit:v.unit}));
           return catSection(`sd-iss-${cat}`, cat, getCatIcon(cat), items, (items) =>
-            items.map(i => `
-              <div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
-                <span style="color:var(--t2);">${i.name}</span>
-                <span style="font-family:var(--mono);font-weight:700;color:var(--orange);">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${i.unit||''}</span></span>
-              </div>`).join('')
+            items.map(i => `<div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
+              <span style="color:var(--t2);">${i.name}</span>
+              <span style="font-family:var(--mono);font-weight:700;color:var(--orange);">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${i.unit||''}</span></span>
+            </div>`).join('')
           );
         }).join('');
         if (issueEl) issueEl.innerHTML = html;
       }
     } catch(e) {}
 
-    // ── SECTION 2: WIP ──
+    // Section 2: WIP
     const wipEl  = document.getElementById('sd-wip-section');
     const wipSummEl = document.getElementById('sd-wip-summary');
     const wipItems = d.wipItems || [];
-
-    // Group WIP by category
     const wipCatMap = {};
     wipItems.forEach(s => {
       const cat = s.cat || 'Other';
       if (!wipCatMap[cat]) wipCatMap[cat] = [];
       wipCatMap[cat].push({ name: s.name, qty: s.wip, unit: s.unit });
     });
-
     const wipCats = Object.keys(wipCatMap).sort();
     if (wipSummEl) wipSummEl.textContent = wipItems.length ? `${wipItems.length} items in production` : 'Nothing in WIP';
-
     if (!wipCats.length) {
       if (wipEl) wipEl.innerHTML = `<div class="empty" style="padding:24px;"><div class="ei">🏭</div><div class="et">Nothing in WIP</div></div>`;
     } else {
       const html = wipCats.map(cat => {
         const items = wipCatMap[cat];
         return catSection(`sd-wip-${cat}`, cat, getCatIcon(cat), items, (items) =>
-          items.map(i => `
-            <div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
-              <span style="color:var(--t2);">${i.name}</span>
-              <span style="font-family:var(--mono);font-weight:700;color:var(--purple);">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${i.unit||''}</span></span>
-            </div>`).join('')
+          items.map(i => `<div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
+            <span style="color:var(--t2);">${i.name}</span>
+            <span style="font-family:var(--mono);font-weight:700;color:var(--purple);">${i.qty} <span style="font-size:11px;font-weight:400;color:var(--muted);">${i.unit||''}</span></span>
+          </div>`).join('')
         );
       }).join('');
       if (wipEl) wipEl.innerHTML = html;
     }
 
-    // ── SECTION 3: Today Dispatch ──
+    // Section 3: Today Dispatch
     const disEl  = document.getElementById('sd-dispatch-section');
     const disSummEl = document.getElementById('sd-dispatch-summary');
     try {
       const disRows = await api('getDispatch', {});
       const todayDis = disRows.filter(r => r.date === today());
-
       if (disSummEl) disSummEl.textContent = todayDis.length ? `${todayDis.length} dispatched today` : 'No dispatch today';
-
       if (!todayDis.length) {
         if (disEl) disEl.innerHTML = `<div class="empty" style="padding:24px;"><div class="ei">🚚</div><div class="et">No dispatch today</div></div>`;
       } else {
-        // Group by BOM model
         const bomMap = {};
         todayDis.forEach(r => {
           if (!bomMap[r.bomModel]) bomMap[r.bomModel] = { qty: 0, entries: [] };
           bomMap[r.bomModel].qty += r.qtyProduced;
           bomMap[r.bomModel].entries.push(r);
         });
-
         const html = Object.entries(bomMap).map(([model, v]) => {
           const items = [{name: model, qty: v.qty, unit: 'units'}];
           return catSection(`sd-dis-${model.replace(/\s/g,'_')}`, model, '🔋', items, () =>
-            v.entries.map(r => `
-              <div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
-                <div>
-                  <div style="font-weight:600;color:var(--navy);">${r.bomModel}</div>
-                  <div style="font-size:11px;color:var(--muted);">${r.dispatchTo||'—'} · ${r.by||'—'}</div>
-                </div>
-                <span style="font-family:var(--mono);font-weight:700;color:var(--green);">×${r.qtyProduced}</span>
-              </div>`).join('')
+            v.entries.map(r => `<div style="display:flex;justify-content:space-between;padding:8px 16px 8px 32px;border-bottom:1px solid var(--border);font-size:13px;">
+              <div>
+                <div style="font-weight:600;color:var(--navy);">${r.bomModel}</div>
+                <div style="font-size:11px;color:var(--muted);">${r.dispatchTo||'—'} · ${r.by||'—'}</div>
+              </div>
+              <span style="font-family:var(--mono);font-weight:700;color:var(--green);">×${r.qtyProduced}</span>
+            </div>`).join('')
           );
         }).join('');
         if (disEl) disEl.innerHTML = html;
@@ -2159,22 +1851,26 @@ async function loadSandeepDash() {
   } catch(e) { toast(e.message, 'err'); setDot('err', 'Error'); }
 }
 
-// ── STOCK LEVEL CHART ──
-let _stockChartInst = null;
-function renderStockChart(stocks) {
-  const canvas = document.getElementById('stockChart');
-  if (!canvas || !stocks.length) return;
+// ============================================================
+// ADMIN DASHBOARD CHARTS
+// ============================================================
+let _reorderChartInst  = null;
+let _wipChartInst      = null;
+let _categoryChartInst = null;
 
-  // Top 8 items by current stock
-  const items = stocks.slice(0, 8);
-  const labels = items.map(s => s.name.length > 15 ? s.name.slice(0,15)+'…' : s.name);
+function renderReorderChart(stocks) {
+  const canvas = document.getElementById('reorderChart');
+  if (!canvas) return;
+  const items = stocks.filter(s => s.status !== 'OK').slice(0, 12);
+  if (!items.length) {
+    canvas.parentElement.innerHTML = `<div class="empty" style="padding:40px;"><div class="ei">✅</div><div class="et">All stocks healthy!</div><div class="es">Koi reorder required nahi</div></div>`;
+    return;
+  }
+  const labels  = items.map(s => s.name.length > 14 ? s.name.slice(0,14)+'…' : s.name);
   const current = items.map(s => s.currentStock);
   const rop     = items.map(s => s.reorderPoint);
-  const max     = items.map(s => s.maxL || s.reorderPoint * 2);
-
-  if (_stockChartInst) _stockChartInst.destroy();
-
-  _stockChartInst = new Chart(canvas, {
+  if (_reorderChartInst) _reorderChartInst.destroy();
+  _reorderChartInst = new Chart(canvas, {
     type: 'bar',
     data: {
       labels,
@@ -2182,53 +1878,97 @@ function renderStockChart(stocks) {
         {
           label: 'Current Stock',
           data: current,
-          backgroundColor: items.map(s =>
-            s.status === 'Critical' ? 'rgba(220,38,38,.8)' :
-            s.status === 'Reorder'  ? 'rgba(234,88,12,.8)' :
-            'rgba(37,88,232,.75)'
-          ),
-          borderRadius: 6,
-          borderSkipped: false,
+          backgroundColor: items.map(s => s.status === 'Critical' ? 'rgba(220,38,38,.85)' : 'rgba(234,88,12,.85)'),
+          borderRadius: 5, borderSkipped: false,
         },
         {
           label: 'Reorder Point',
           data: rop,
-          backgroundColor: 'rgba(217,119,6,.25)',
-          borderColor: 'rgba(217,119,6,.8)',
+          backgroundColor: 'rgba(37,88,232,.18)',
+          borderColor: 'rgba(37,88,232,.6)',
           borderWidth: 1.5,
-          borderRadius: 4,
-          borderSkipped: false,
-          type: 'bar',
+          borderRadius: 5, borderSkipped: false,
         },
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: true,
+      responsive: true, maintainAspectRatio: true,
       plugins: {
-        legend: {
-          position: 'top',
-          labels: { font: { size: 11, family: 'DM Sans' }, boxWidth: 12, padding: 14 }
-        },
-        tooltip: {
-          callbacks: {
-            afterBody: (items) => {
-              const s = stocks[items[0].dataIndex];
-              return s ? [`Max Level: ${s.maxL||0}`, `Status: ${s.status}`] : [];
-            }
-          }
-        }
+        legend: { position: 'top', labels: { font: { size: 11, family: 'DM Sans' }, boxWidth: 12, padding: 12 } },
+        tooltip: { callbacks: { afterBody: (i) => { const s = items[i[0].dataIndex]; return s ? [`Status: ${s.status}`, `Max: ${s.maxL||0}`] : []; } } }
       },
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { font: { size: 10, family: 'DM Sans' }, maxRotation: 30 }
-        },
-        y: {
-          grid: { color: 'rgba(0,0,0,.05)' },
-          ticks: { font: { size: 10, family: 'DM Sans' } },
-          beginAtZero: true,
-        }
+        x: { grid: { display: false }, ticks: { font: { size: 10, family: 'DM Sans' }, maxRotation: 35 } },
+        y: { beginAtZero: true, ticks: { font: { size: 10, family: 'DM Sans' } }, grid: { color: 'rgba(0,0,0,.04)' } }
+      }
+    }
+  });
+}
+
+function renderWipChart(wipItems) {
+  const canvas = document.getElementById('wipChart');
+  if (!canvas) return;
+  if (!wipItems || !wipItems.length) {
+    canvas.parentElement.innerHTML = `<div class="empty" style="padding:40px;"><div class="ei">🏭</div><div class="et">No WIP items</div><div class="es">Production mein kuch nahi</div></div>`;
+    return;
+  }
+  const labels = wipItems.map(s => s.name.length > 14 ? s.name.slice(0,14)+'…' : s.name);
+  const data   = wipItems.map(s => s.wip);
+  if (_wipChartInst) _wipChartInst.destroy();
+  _wipChartInst = new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'WIP Qty',
+        data,
+        backgroundColor: 'rgba(124,58,237,.8)',
+        borderRadius: 5, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { afterBody: (i) => { const s = wipItems[i[0].dataIndex]; return s ? [`Store Stock: ${s.currentStock} ${s.unit||''}`] : []; } } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10, family: 'DM Sans' }, maxRotation: 35 } },
+        y: { beginAtZero: true, ticks: { font: { size: 10, family: 'DM Sans' } }, grid: { color: 'rgba(0,0,0,.04)' } }
+      }
+    }
+  });
+}
+
+function renderCategoryChart(stocks) {
+  const canvas = document.getElementById('categoryChart');
+  if (!canvas || !stocks.length) return;
+  const catMap = {};
+  stocks.forEach(s => { catMap[s.cat||'Other'] = (catMap[s.cat||'Other']||0) + 1; });
+  const labels = Object.keys(catMap);
+  const data   = Object.values(catMap);
+  const colors = [
+    'rgba(37,88,232,.85)', 'rgba(16,163,74,.85)', 'rgba(234,88,12,.85)',
+    'rgba(124,58,237,.85)', 'rgba(220,38,38,.85)', 'rgba(8,145,178,.85)',
+    'rgba(217,119,6,.85)', 'rgba(107,114,128,.85)'
+  ];
+  if (_categoryChartInst) _categoryChartInst.destroy();
+  _categoryChartInst = new Chart(canvas, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderWidth: 2, borderColor: '#fff',
+        hoverOffset: 6,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11, family: 'DM Sans' }, boxWidth: 12, padding: 10 } },
+        tooltip: { callbacks: { label: (i) => ` ${i.label}: ${i.raw} items` } }
       }
     }
   });
