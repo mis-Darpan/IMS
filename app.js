@@ -168,7 +168,7 @@ window.onload = async function() {
 function setDot(state, label) {
   const d = document.getElementById('api-dot');
   const l = document.getElementById('api-lbl');
-  d.className = 'dot ' + state;
+  if (d) d.className = 'dot ' + state;
   if (l) l.textContent = label;
 }
 
@@ -217,8 +217,8 @@ async function loadDash() {
     const rname = _currentRole ? ROLES[_currentRole].name : 'Sahil / Sneha';
     greetEl.textContent = `${greeting}, ${rname} 👋`;
   }
-  document.getElementById('dash-date').textContent = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-  // Admin only reaches here
+  setEl('dash-date', now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }));
+  // Role based routing
   if (_currentRole === 'ajay') { await loadAjayDash(); return; }
   if (_currentRole === 'sandeep') { await loadSandeepDash(); return; }
   try {
