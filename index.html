@@ -266,12 +266,10 @@
 
     <!-- AJAY DASHBOARD -->
     <div class="page" id="page-ajay-dash">
-
-      <!-- TOP BAR -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
-          <div style="font-size:20px;font-weight:700;color:var(--navy);" id="ajay-greeting">Good morning, Ajay 👋</div>
-          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="ajay-date">—</div>
+          <div style="font-size:22px;font-weight:700;color:var(--navy);" id="ajay-greeting">Good morning, Ajay 👋</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="ajay-date">—</div>
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn bgn" onclick="showPage('inward');openInwardModal()">+ New Inward</button>
@@ -279,80 +277,35 @@
           <button class="btn bg bsm" onclick="loadAjayDash()">↻</button>
         </div>
       </div>
-
-      <!-- KPI ROW -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
         <div class="kpi-card kpi-blue"><div class="kpi-icon">📦</div><div class="kpi-val" id="aj-total">—</div><div class="kpi-label">Total Items</div></div>
-        <div class="kpi-card kpi-red"><div class="kpi-icon">🔴</div><div class="kpi-val" id="aj-critical">—</div><div class="kpi-label">Critical</div></div>
-        <div class="kpi-card kpi-orange"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="aj-ro">—</div><div class="kpi-label">Reorder</div></div>
-        <div class="kpi-card kpi-purple"><div class="kpi-icon">🔔</div><div class="kpi-val" id="aj-req-count">—</div><div class="kpi-label">Pending Requests</div></div>
+        <div class="kpi-card kpi-green"><div class="kpi-icon">📥</div><div class="kpi-val" id="aj-in">—</div><div class="kpi-label">Today Inward</div></div>
+        <div class="kpi-card kpi-orange"><div class="kpi-icon">📤</div><div class="kpi-val" id="aj-out">—</div><div class="kpi-label">Today Outward</div></div>
+        <div class="kpi-card kpi-red"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="aj-ro">—</div><div class="kpi-label">Reorder Alerts</div></div>
       </div>
-
-      <!-- MAIN GRID -->
-      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:14px;margin-bottom:14px;">
-
-        <!-- LEFT: STOCK BY STATUS -->
-        <div style="display:flex;flex-direction:column;gap:12px;">
-
-          <!-- CRITICAL -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#fef2f2,#fee2e2);">
-              <div style="display:flex;align-items:center;gap:6px;"><span>🔴</span><h2 style="color:var(--red);">Critical — Out of Stock</h2></div>
-              <span class="nbadge" id="aj-crit-badge" style="background:var(--red);display:none;">0</span>
-            </div>
-            <div id="aj-critical-list"><div class="empty" style="padding:20px;"><div class="ei">✅</div><div class="et">None critical</div></div></div>
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="card" style="grid-column:1/3;">
+          <div class="ch" style="background:linear-gradient(90deg,#f8faff,#f0f4ff);">
+            <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">🏪</span><h2>Live Inventory Stock</h2></div>
+            <input class="inp" id="aj-search" placeholder="🔍 Search..." style="width:160px;" oninput="ajayFilterStock()">
           </div>
-
-          <!-- REORDER -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
-              <div style="display:flex;align-items:center;gap:6px;"><span>🟠</span><h2 style="color:var(--orange);">Reorder Required</h2></div>
-              <span class="nbadge" id="aj-ro-badge" style="background:var(--orange);display:none;">0</span>
-            </div>
-            <div id="aj-reorder-list"><div class="empty" style="padding:20px;"><div class="ei">✅</div><div class="et">All above reorder point</div></div></div>
-          </div>
-
-          <!-- OK ITEMS collapsed -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);cursor:pointer;" onclick="toggleAjayOK()">
-              <div style="display:flex;align-items:center;gap:6px;"><span>🟢</span><h2 style="color:var(--green);">Healthy Stock</h2><span id="aj-ok-count" style="font-size:11px;color:var(--muted);"></span></div>
-              <span id="aj-ok-arrow" style="color:var(--muted);font-size:12px;">▼ Show</span>
-            </div>
-            <div id="aj-ok-list" style="display:none;"></div>
-          </div>
-
+          <div id="aj-stock-table"><div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div></div>
         </div>
-
-        <!-- RIGHT: TODAY ACTIVITY + REQUESTS -->
-        <div style="display:flex;flex-direction:column;gap:12px;">
-
-          <!-- TODAY INWARD -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
-              <div style="display:flex;align-items:center;gap:6px;"><span>📥</span><h2>Today's Inward</h2></div>
-              <span id="aj-in-count" style="font-size:11px;font-weight:700;color:var(--green);">—</span>
-            </div>
-            <div id="aj-inward-list"><div class="empty" style="padding:20px;"><div class="ei">📥</div><div class="et">No inward today</div></div></div>
+      </div>
+      <div class="g2">
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#fff8f0,#fff3e8);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>⚠️</span><h2>Reorder Alerts</h2></div>
+            <span class="nbadge" id="aj-alert-badge" style="display:none;">0</span>
           </div>
-
-          <!-- TODAY OUTWARD -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
-              <div style="display:flex;align-items:center;gap:6px;"><span>📤</span><h2>Today's Outward</h2></div>
-              <span id="aj-out-count" style="font-size:11px;font-weight:700;color:var(--orange);">—</span>
-            </div>
-            <div id="aj-outward-list"><div class="empty" style="padding:20px;"><div class="ei">📤</div><div class="et">No outward today</div></div></div>
+          <div id="aj-alerts"><div class="empty" style="padding:28px;"><div class="ei">✅</div><div class="et">All OK</div></div></div>
+        </div>
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#f0f4ff,#eef2ff);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>🔔</span><h2>Pending Material Requests</h2></div>
+            <span class="nbadge" id="aj-req-badge" style="display:none;">0</span>
           </div>
-
-          <!-- PENDING REQUESTS -->
-          <div class="card">
-            <div class="ch" style="background:linear-gradient(90deg,#f0f4ff,#eef2ff);">
-              <div style="display:flex;align-items:center;gap:6px;"><span>🔔</span><h2>Pending Requests</h2></div>
-              <span class="nbadge" id="aj-req-badge" style="display:none;">0</span>
-            </div>
-            <div id="aj-requests"><div class="empty" style="padding:20px;"><div class="ei">✅</div><div class="et">No pending requests</div></div></div>
-          </div>
-
+          <div id="aj-requests"><div class="empty" style="padding:28px;"><div class="ei">✅</div><div class="et">No pending requests</div></div></div>
         </div>
       </div>
     </div>
@@ -943,6 +896,6 @@
   </div>
 </div>
 
-<script src="app.js?v=36"></script>
+<script src="app.js?v=37"></script>
 </body>
 </html>
