@@ -84,18 +84,34 @@
         <div class="ni" onclick="showPage('closing')" data-page="closing"><span class="ic">🗓️</span><span>Daily Closing</span></div>
       </div>
 
-      <!-- RECENT TRANSACTIONS — SIDEBAR PANEL (Admin only) -->
-      <div class="ng" id="sb-recent-ng">
-        <div class="ng-label">Recent Activity</div>
-        <div class="ni" onclick="toggleSbRecent()" id="sb-recent-toggle" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
+      <!-- TODAY INWARD / OUTWARD — SIDEBAR PANEL (Admin only) -->
+      <div class="ng" id="sb-txn-ng">
+        <div class="ng-label">Today's Activity</div>
+
+        <!-- Inward toggle -->
+        <div class="ni" onclick="toggleSbPanel('sb-in-list','sb-in-arrow')" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
           <div style="display:flex;align-items:center;gap:9px;width:100%;">
-            <span class="ic">🕐</span>
-            <span>Recent Txns</span>
-            <span style="margin-left:auto;font-size:10px;opacity:.5;" id="sb-recent-arrow">▼</span>
+            <span class="ic">📥</span>
+            <span>Inward</span>
+            <span style="margin-left:auto;font-size:9px;font-weight:700;color:rgba(34,197,94,.8);" id="sb-in-count"></span>
+            <span style="font-size:10px;opacity:.5;" id="sb-in-arrow">▼</span>
           </div>
         </div>
-        <div id="sb-recent-list" style="display:none;max-height:260px;overflow-y:auto;padding:4px 8px 8px;">
-          <div class="empty" style="padding:20px 8px;"><div class="ei" style="font-size:22px;">⏳</div><div class="et" style="font-size:11px;">Loading...</div></div>
+        <div id="sb-in-list" style="display:none;max-height:200px;overflow-y:auto;padding:2px 8px 8px;">
+          <div style="padding:10px 4px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);">Loading...</div>
+        </div>
+
+        <!-- Outward toggle -->
+        <div class="ni" onclick="toggleSbPanel('sb-out-list','sb-out-arrow')" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
+          <div style="display:flex;align-items:center;gap:9px;width:100%;">
+            <span class="ic">📤</span>
+            <span>Outward</span>
+            <span style="margin-left:auto;font-size:9px;font-weight:700;color:rgba(234,88,12,.8);" id="sb-out-count"></span>
+            <span style="font-size:10px;opacity:.5;" id="sb-out-arrow">▼</span>
+          </div>
+        </div>
+        <div id="sb-out-list" style="display:none;max-height:200px;overflow-y:auto;padding:2px 8px 8px;">
+          <div style="padding:10px 4px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);">Loading...</div>
         </div>
       </div>
     </nav>
@@ -154,18 +170,7 @@
         </div>
       </div>
 
-      <!-- CHARTS ROW 2: Category (full width) -->
-      <div style="margin-bottom:14px;">
-        <div class="card">
-          <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
-            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">📦</span><h2>Items by Category</h2></div>
-            <span style="font-size:10px;color:var(--muted);">Total item distribution</span>
-          </div>
-          <div style="padding:16px 18px;display:flex;justify-content:center;">
-            <canvas id="categoryChart" height="120" style="max-width:360px;"></canvas>
-          </div>
-        </div>
-      </div>
+
     </div>
 
     <!-- AJAY DASHBOARD -->
@@ -701,6 +706,6 @@
   </div>
 </div>
 
-<script src="app.js?v=47"></script>
+<script src="app.js?v=48"></script>
 </body>
 </html>
