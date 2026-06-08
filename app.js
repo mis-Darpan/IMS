@@ -1,5 +1,5 @@
 // ============================================================
-// LITPAX IMS — app.js v4.1
+// LITPAX IMS — app.js v4.2
 // API URL: change here if redeployed
 // ============================================================
 
@@ -238,8 +238,10 @@ async function loadDash() {
     }
 
     const nb = document.getElementById('nb');
-    if (d.reorderCount > 0) { nb.style.display = 'inline'; nb.textContent = d.reorderCount; }
-    else nb.style.display = 'none';
+    if (nb) {
+      if (d.reorderCount > 0) { nb.style.display = 'inline'; nb.textContent = d.reorderCount; }
+      else nb.style.display = 'none';
+    }
 
     // Pending indents badge
     const nbi = document.getElementById('nb-indent');
@@ -256,7 +258,7 @@ async function loadDash() {
 
     // Alerts
     const al = document.getElementById('d-alerts');
-    if (!d.alerts || !d.alerts.length) {
+    if (al && (!d.alerts || !d.alerts.length)) {
       al.innerHTML = `<div class="empty"><div class="ei">✅</div><div class="et">All stocks healthy!</div></div>`;
     } else {
       al.innerHTML = d.alerts.map(s => `
@@ -271,7 +273,7 @@ async function loadDash() {
 
     // Recent txns
     const rt = document.getElementById('d-recent');
-    if (!d.recentTxns || !d.recentTxns.length) {
+    if (rt && (!d.recentTxns || !d.recentTxns.length)) {
       rt.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No transactions today</div></div>`;
     } else {
       rt.innerHTML = d.recentTxns.map(t => `
