@@ -1756,7 +1756,10 @@ async function loadSandeepDash() {
     // Section 2: WIP
     const wipEl  = document.getElementById('sd-wip-section');
     const wipSummEl = document.getElementById('sd-wip-summary');
-    const wipItems = d.wipItems || [];
+
+    // Fresh stock data se WIP calculate karo — dashboard wipItems pe depend mat karo
+    const freshStocks = await api('getStockSummary');
+    const wipItems = freshStocks.filter(s => (s.wip || 0) > 0);
     const wipCatMap = {};
     wipItems.forEach(s => {
       const cat = s.cat || 'Other';
