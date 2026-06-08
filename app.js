@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbyB-hy9Unu4ao_YC-RtIPe3BWeq6XEOLoIqQD5AJ_DzON4_mcAbqjojbP4S7BSUPcGe/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzwoWnsBLNZTr2GWWpG3BwTClArfE2gjhUlS-p319FWLs3tfZtbOh9D5WY60LD9r45v/exec';
 
 const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Cathodic Wing','Future Cell','Phoenix Wing','Other'];
 
