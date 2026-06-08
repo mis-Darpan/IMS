@@ -585,7 +585,7 @@ function filterItems() {
 const CAT_BRANDS = {
   'BMS':        ['JK', 'JBD', 'Daly', 'AIS', 'Pace', 'Other'],
   'Cells':      ['DMEGC', 'EVE', 'BAK', 'LG', 'HLY', 'CATL', 'Other'],
-  'Charger':    ['Generic', 'Litpax', 'Other'],
+  'Charger':    ['Generic', 'Litpax', 'AXIOM', 'SHAKTI', 'XSTRONG POWER', 'Other'],
   'Wire':       ['Copper', 'Silicon', 'Other'],
   'Nickel':     ['Pure', 'Coated', 'Other'],
   'Consumable': ['—'],
