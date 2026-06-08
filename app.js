@@ -1829,12 +1829,13 @@ async function submitRequest() {
 function toggleAjayOK() {
   const list = document.getElementById('aj-ok-list');
   const arrow = document.getElementById('aj-ok-arrow');
+  if (!list) return;
   if (list.style.display === 'none') {
     list.style.display = 'block';
-    arrow.textContent = '▲ Hide';
+    if (arrow) arrow.textContent = '▲ Hide';
   } else {
     list.style.display = 'none';
-    arrow.textContent = '▼ Show';
+    if (arrow) arrow.textContent = '▼ Show';
   }
 }
 
