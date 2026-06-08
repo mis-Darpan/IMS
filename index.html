@@ -84,36 +84,7 @@
         <div class="ni" onclick="showPage('closing')" data-page="closing"><span class="ic">🗓️</span><span>Daily Closing</span></div>
       </div>
 
-      <!-- TODAY INWARD / OUTWARD — SIDEBAR PANEL (Admin only) -->
-      <div class="ng" id="sb-txn-ng">
-        <div class="ng-label">Today's Activity</div>
 
-        <!-- Inward toggle -->
-        <div class="ni" onclick="toggleSbPanel('sb-in-list','sb-in-arrow')" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
-          <div style="display:flex;align-items:center;gap:9px;width:100%;">
-            <span class="ic">📥</span>
-            <span>Inward</span>
-            <span style="margin-left:auto;font-size:9px;font-weight:700;color:rgba(34,197,94,.8);" id="sb-in-count"></span>
-            <span style="font-size:10px;opacity:.5;" id="sb-in-arrow">▼</span>
-          </div>
-        </div>
-        <div id="sb-in-list" style="display:none;max-height:200px;overflow-y:auto;padding:2px 8px 8px;">
-          <div style="padding:10px 4px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);">Loading...</div>
-        </div>
-
-        <!-- Outward toggle -->
-        <div class="ni" onclick="toggleSbPanel('sb-out-list','sb-out-arrow')" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
-          <div style="display:flex;align-items:center;gap:9px;width:100%;">
-            <span class="ic">📤</span>
-            <span>Outward</span>
-            <span style="margin-left:auto;font-size:9px;font-weight:700;color:rgba(234,88,12,.8);" id="sb-out-count"></span>
-            <span style="font-size:10px;opacity:.5;" id="sb-out-arrow">▼</span>
-          </div>
-        </div>
-        <div id="sb-out-list" style="display:none;max-height:200px;overflow-y:auto;padding:2px 8px 8px;">
-          <div style="padding:10px 4px;text-align:center;font-size:11px;color:rgba(255,255,255,.3);">Loading...</div>
-        </div>
-      </div>
     </nav>
     <div class="sfoot">
       <div class="conn-dot-row">
@@ -706,6 +677,6 @@
   </div>
 </div>
 
-<script src="app.js?v=48"></script>
+<script src="app.js?v=49"></script>
 </body>
 </html>
