@@ -1,5 +1,5 @@
 // ============================================================
-// LITPAX IMS — app.js v4.3
+// LITPAX IMS — app.js v4.4
 // API URL: change here if redeployed
 // ============================================================
 
@@ -1858,9 +1858,11 @@ async function loadAjayDash() {
     _stocks = d.stocks || [];
 
     // KPI
+    const todayInCount  = (d.recentTxns||[]).filter(t => t.txnType==='IN'  && t.date===today()).length;
+    const todayOutCount = (d.recentTxns||[]).filter(t => t.txnType==='OUT' && t.date===today() && !((t.remarks||'').startsWith('Dispatch:'))).length;
     setEl('aj-total', d.totalItems || 0);
-    setEl('aj-in',    d.todayIn || 0);
-    setEl('aj-out',   d.todayOut || 0);
+    setEl('aj-in',    todayInCount + ' items');
+    setEl('aj-out',   todayOutCount + ' items');
     setEl('aj-ro',    d.reorderCount || 0);
 
     // Badges
@@ -1875,36 +1877,74 @@ async function loadAjayDash() {
     const nbr = document.getElementById('nb-req');
     if (nbr) { nbr.style.display = d.pendingRequests>0?'inline':'none'; nbr.textContent = d.pendingRequests; }
 
-    // Live Stock Table
+    // Live Stock Table - Critical/Reorder first, OK collapsed
     const st = document.getElementById('aj-stock-table');
     if (st && d.stocks) {
-      st.innerHTML = `<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;">
-        <thead><tr>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Item</th>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Unit</th>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Store Stock</th>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">ROP</th>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">MIT</th>
-          <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Status</th>
-        </tr></thead>
-        <tbody>
-          ${d.stocks.map(s => {
-            const pct = s.maxL > 0 ? Math.min(100, Math.round(s.currentStock/s.maxL*100)) : 0;
-            const bc = s.status==='OK'?'var(--green)':s.status==='Reorder'?'var(--orange)':'var(--red)';
-            return `<tr>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-weight:600;color:var(--navy);font-size:13px;">${s.name}</td>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">
-                <span style="font-family:var(--mono);font-weight:700;font-size:15px;">${s.currentStock}</span>
-                <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;"><div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div></div>
-              </td>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--orange);font-weight:600;">${s.reorderPoint}</td>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">${(s.mit||0)>0?`<span style="font-family:var(--mono);color:var(--purple);">🚚${s.mit}</span>`:'—'}</td>
-              <td style="padding:10px 14px;border-bottom:1px solid var(--border);">${stBadge(s.status)}</td>
-            </tr>`;
-          }).join('')}
-        </tbody>
-      </table></div>`;
+      const critical = d.stocks.filter(s => s.status === 'Critical');
+      const reorder  = d.stocks.filter(s => s.status === 'Reorder');
+      const ok       = d.stocks.filter(s => s.status === 'OK');
+
+      const stockRow = (s) => {
+        const pct = s.maxL > 0 ? Math.min(100, Math.round(s.currentStock/s.maxL*100)) : 0;
+        const bc = s.status==='OK'?'var(--green)':s.status==='Reorder'?'var(--orange)':'var(--red)';
+        return `<tr>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-weight:600;color:var(--navy);font-size:13px;">${s.name}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);color:var(--muted);font-size:12px;">${s.unit||'—'}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">
+            <span style="font-family:var(--mono);font-weight:700;font-size:15px;">${s.currentStock}</span>
+            <div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px;width:80px;"><div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div></div>
+          </td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);font-family:var(--mono);color:var(--orange);font-weight:600;">${s.reorderPoint}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">${(s.mit||0)>0?`<span style="font-family:var(--mono);color:var(--purple);">🚚${s.mit}</span>`:'—'}</td>
+          <td style="padding:9px 14px;border-bottom:1px solid var(--border);">${stBadge(s.status)}</td>
+        </tr>`;
+      };
+
+      const thead = `<thead><tr>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Item</th>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Unit</th>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Stock</th>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">ROP</th>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">MIT</th>
+        <th style="text-align:left;padding:8px 14px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:1.5px solid var(--border);background:var(--s2);">Status</th>
+      </tr></thead>`;
+
+      let html = '<div style="overflow-x:auto;">';
+
+      // Critical section
+      if (critical.length) {
+        html += `<div style="padding:6px 14px;background:#fef2f2;font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);">🔴 Critical — Out of Stock (${critical.length})</div>`;
+        html += `<table style="width:100%;border-collapse:collapse;">${thead}<tbody>${critical.map(stockRow).join('')}</tbody></table>`;
+      }
+
+      // Reorder section
+      if (reorder.length) {
+        html += `<div style="padding:6px 14px;background:#fff7ed;font-size:10px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--border);border-top:1px solid var(--border);">🟠 Reorder Required (${reorder.length})</div>`;
+        html += `<table style="width:100%;border-collapse:collapse;">${thead}<tbody>${reorder.map(stockRow).join('')}</tbody></table>`;
+      }
+
+      // OK section - collapsed
+      if (ok.length) {
+        html += `<div style="padding:8px 14px;background:#f0fdf4;font-size:11px;font-weight:600;color:var(--green);border-top:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center;" onclick="
+          const okTb=document.getElementById('aj-ok-tb');
+          const arr=document.getElementById('aj-ok-arr');
+          if(okTb.style.display==='none'){okTb.style.display='block';arr.textContent='▲ Hide';}
+          else{okTb.style.display='none';arr.textContent='▼ Show';}
+        ">
+          <span>🟢 Healthy Stock (${ok.length} items)</span>
+          <span id="aj-ok-arr" style="font-size:11px;color:var(--muted);">▼ Show</span>
+        </div>
+        <div id="aj-ok-tb" style="display:none;">
+          <table style="width:100%;border-collapse:collapse;">${thead}<tbody>${ok.map(stockRow).join('')}</tbody></table>
+        </div>`;
+      }
+
+      if (!critical.length && !reorder.length && !ok.length) {
+        html += `<div class="empty"><div class="ei">📦</div><div class="et">No items</div></div>`;
+      }
+
+      html += '</div>';
+      st.innerHTML = html;
     }
 
     // Reorder alerts
