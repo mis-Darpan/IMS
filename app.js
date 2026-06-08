@@ -465,27 +465,44 @@ async function updDispatchPreview() {
   const bomName = document.getElementById('dis-bom').value;
   const qty     = Number(document.getElementById('dis-qty').value) || 1;
   const preview = document.getElementById('dis-preview');
+  const btn     = document.getElementById('dis-btn');
   if (!bomName) { preview.innerHTML = ''; return; }
   try {
     const items = await api('getBomItems', { bomName });
     if (!items.length) { preview.innerHTML = '<div style="color:var(--muted);font-size:12px;margin-top:10px;">No components found for this BOM</div>'; return; }
     const stockMap = {};
     _stocks.forEach(s => { stockMap[s.name] = s; });
+
+    let hasShortage = false;
+    const rows = items.map(bi => {
+      const needed = bi.qty * qty;
+      const s = stockMap[bi.component];
+      // Store stock + WIP dono milake available hai
+      const storeQty = s ? s.currentStock : 0;
+      const wipQty   = s ? (s.wip || 0) : 0;
+      const avail    = storeQty + wipQty;
+      const ok = avail >= needed;
+      if (!ok) hasShortage = true;
+      return `<div class="bom-preview-row">
+        <span class="comp">${bi.component}</span>
+        <span class="qty" style="color:${ok ? 'var(--green)' : 'var(--red)'}">
+          ${needed} ${bi.unit} ${ok ? '✓' : `⚠ (avail: ${avail})`}
+        </span>
+      </div>`;
+    });
+
     preview.innerHTML = `<div class="bom-preview">
       <div class="bp-title">Components required (×${qty})</div>
-      ${items.map(bi => {
-        const needed = bi.qty * qty;
-        const s = stockMap[bi.component];
-        const avail = s ? s.currentStock : 0;
-        const ok = avail >= needed;
-        return `<div class="bom-preview-row">
-          <span class="comp">${bi.component}</span>
-          <span class="qty" style="color:${ok ? 'var(--green)' : 'var(--red)'}">
-            ${needed} ${bi.unit} ${ok ? '✓' : `⚠ (avail: ${avail})`}
-          </span>
-        </div>`;
-      }).join('')}
+      ${rows.join('')}
+      ${hasShortage ? `<div style="margin-top:10px;padding:8px 10px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:12px;color:var(--red);font-weight:600;">⛔ Insufficient stock — dispatch nahi ho sakta</div>` : ''}
     </div>`;
+
+    // Block/unblock confirm button
+    if (btn) {
+      btn.disabled = hasShortage;
+      btn.style.opacity = hasShortage ? '0.4' : '1';
+      btn.style.cursor  = hasShortage ? 'not-allowed' : 'pointer';
+    }
   } catch(e) { preview.innerHTML = ''; }
 }
 
@@ -496,6 +513,7 @@ async function saveDispatch() {
   if (!bomModel) { toast('Select a BOM model', 'err'); return; }
   if (!qtyProduced || qtyProduced <= 0) { toast('Enter a valid quantity', 'err'); return; }
   const btn = document.getElementById('dis-btn');
+  if (btn.disabled) { toast('Stock insufficient — dispatch nahi ho sakta', 'err'); return; }
   btn.disabled = true; btn.textContent = 'Processing...';
   try {
     const r = await api('addDispatch', {
@@ -510,8 +528,8 @@ async function saveDispatch() {
     _stocks = [];
     loadDispatch();
     loadDash();
-  } catch(e) { toast(e.message, 'err'); }
-  finally { btn.disabled = false; btn.textContent = 'Confirm Dispatch'; }
+  } catch(e) { toast('⛔ ' + e.message, 'err'); }
+  finally { btn.disabled = false; btn.style.opacity = '1'; btn.textContent = 'Confirm Dispatch'; }
 }
 
 // ── ITEMS ──
