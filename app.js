@@ -14,7 +14,7 @@ const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Catho
 const ROLES = {
   admin:   { pin: '1234', name: 'Admin',   homePage: 'dashboard',    pages: ['dashboard','stock','reorder','closing'] },
   ajay:    { pin: '0001', name: 'Ajay',    homePage: 'ajay-dash',    pages: ['ajay-dash','inward','outward','requests','items','opening','bom','indent','stock','reorder'] },
-  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','stock'] },
+  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','stock','items','bom'] },
 };
 
 let _currentRole = null;
