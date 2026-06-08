@@ -83,6 +83,21 @@
         <div class="ni" onclick="showPage('reorder')" data-page="reorder"><span class="ic">⚠️</span><span>Reorder</span><span class="nbadge" id="nb" style="display:none">0</span></div>
         <div class="ni" onclick="showPage('closing')" data-page="closing"><span class="ic">🗓️</span><span>Daily Closing</span></div>
       </div>
+
+      <!-- RECENT TRANSACTIONS — SIDEBAR PANEL (Admin only) -->
+      <div class="ng" id="sb-recent-ng">
+        <div class="ng-label">Recent Activity</div>
+        <div class="ni" onclick="toggleSbRecent()" id="sb-recent-toggle" style="flex-direction:column;align-items:flex-start;height:auto;padding:8px 10px;">
+          <div style="display:flex;align-items:center;gap:9px;width:100%;">
+            <span class="ic">🕐</span>
+            <span>Recent Txns</span>
+            <span style="margin-left:auto;font-size:10px;opacity:.5;" id="sb-recent-arrow">▼</span>
+          </div>
+        </div>
+        <div id="sb-recent-list" style="display:none;max-height:260px;overflow-y:auto;padding:4px 8px 8px;">
+          <div class="empty" style="padding:20px 8px;"><div class="ei" style="font-size:22px;">⏳</div><div class="et" style="font-size:11px;">Loading...</div></div>
+        </div>
+      </div>
     </nav>
     <div class="sfoot">
       <div class="conn-dot-row">
@@ -101,9 +116,7 @@
   <!-- MAIN -->
   <div class="main">
 
-    <!-- ══════════════════════════════════════
-         ADMIN DASHBOARD
-    ══════════════════════════════════════ -->
+    <!-- ADMIN DASHBOARD -->
     <div class="page active" id="page-dashboard">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
@@ -113,38 +126,18 @@
         <button class="btn bg bsm" onclick="loadDash()">↻ Refresh</button>
       </div>
 
-      <!-- KPI CARDS -->
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;">
+      <!-- KPI — 3 CARDS ONLY -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
         <div class="kpi-card kpi-blue"><div class="kpi-icon">📦</div><div class="kpi-val" id="s-total">—</div><div class="kpi-label">Total Items</div></div>
-        <div class="kpi-card kpi-green"><div class="kpi-icon">📥</div><div class="kpi-val" id="s-in">—</div><div class="kpi-label">Today Inward</div></div>
-        <div class="kpi-card kpi-orange"><div class="kpi-icon">📤</div><div class="kpi-val" id="s-out">—</div><div class="kpi-label">Today Outward</div></div>
         <div class="kpi-card kpi-purple"><div class="kpi-icon">🏭</div><div class="kpi-val" id="s-wip">—</div><div class="kpi-label">Items in WIP</div></div>
-        <div class="kpi-card kpi-red"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="s-ro">—</div><div class="kpi-label">Reorder Alerts</div></div>
-      </div>
-
-      <!-- STORE LIVE STOCK -->
-      <div style="margin-bottom:14px;">
-        <div class="card">
-          <div class="ch" style="background:linear-gradient(90deg,#f8faff,#f0f4ff);">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <span style="font-size:16px;">🏪</span>
-              <h2 style="font-size:12px;">Store Live Stock</h2>
-              <span style="font-size:10px;color:var(--muted);font-weight:400;">Inward − Outward = Current balance</span>
-            </div>
-            <button class="btn bg bsm" onclick="showPage('stock')">View All →</button>
-          </div>
-          <div id="d-store"><div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div></div>
-        </div>
+        <div class="kpi-card kpi-red" style="cursor:pointer;" onclick="showPage('reorder')"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="s-ro">—</div><div class="kpi-label">Reorder Alerts</div></div>
       </div>
 
       <!-- CHARTS ROW 1: Reorder + WIP -->
       <div class="g2" style="margin-bottom:14px;">
         <div class="card">
           <div class="ch" style="background:linear-gradient(90deg,#fff8f0,#fff3e8);">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:15px;">⚠️</span>
-              <h2>Reorder / Critical Items</h2>
-            </div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">⚠️</span><h2>Reorder / Critical Items</h2></div>
             <button class="btn bg bsm" onclick="showPage('reorder')">View All →</button>
           </div>
           <div style="padding:16px 18px;" id="reorder-chart-wrap">
@@ -153,10 +146,7 @@
         </div>
         <div class="card">
           <div class="ch" style="background:linear-gradient(90deg,#faf5ff,#f3eeff);">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:15px;">🏭</span>
-              <h2>WIP — In Production</h2>
-            </div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">🏭</span><h2>WIP — In Production</h2></div>
           </div>
           <div style="padding:16px 18px;" id="wip-chart-wrap">
             <canvas id="wipChart" height="220"></canvas>
@@ -164,30 +154,21 @@
         </div>
       </div>
 
-      <!-- CHARTS ROW 2: Category + Recent Txns -->
-      <div class="g2" style="margin-bottom:14px;">
+      <!-- CHARTS ROW 2: Category (full width) -->
+      <div style="margin-bottom:14px;">
         <div class="card">
           <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span style="font-size:15px;">📦</span>
-              <h2>Items by Category</h2>
-            </div>
+            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">📦</span><h2>Items by Category</h2></div>
             <span style="font-size:10px;color:var(--muted);">Total item distribution</span>
           </div>
-          <div style="padding:16px 18px;display:flex;justify-content:center;" id="category-chart-wrap">
-            <canvas id="categoryChart" height="220" style="max-width:320px;"></canvas>
+          <div style="padding:16px 18px;display:flex;justify-content:center;">
+            <canvas id="categoryChart" height="120" style="max-width:360px;"></canvas>
           </div>
-        </div>
-        <div class="card">
-          <div class="ch"><h2>🕐 Recent Transactions</h2></div>
-          <div id="d-recent"><div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div></div>
         </div>
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════
-         AJAY DASHBOARD
-    ══════════════════════════════════════ -->
+    <!-- AJAY DASHBOARD -->
     <div class="page" id="page-ajay-dash">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
@@ -234,9 +215,7 @@
       </div>
     </div>
 
-    <!-- ══════════════════════════════════════
-         SANDEEP DASHBOARD
-    ══════════════════════════════════════ -->
+    <!-- SANDEEP DASHBOARD -->
     <div class="page" id="page-sandeep-dash">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
         <div>
@@ -286,12 +265,10 @@
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Supplier</th><th>Invoice/PO</th><th>By</th><th>Remarks</th></tr></thead>
             <tbody id="in-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="in-empty" class="empty" style="display:none"><div class="ei">📥</div><div class="et">No inward records</div></div>
       </div>
     </div>
@@ -317,12 +294,10 @@
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Department</th><th>Issued To</th><th>By</th><th>Remarks</th></tr></thead>
             <tbody id="out-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="out-empty" class="empty" style="display:none"><div class="ei">📤</div><div class="et">No outward records</div></div>
       </div>
     </div>
@@ -334,12 +309,10 @@
         <div class="ta"><button class="btn bp" onclick="openDispatchModal()">+ New Dispatch</button></div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Date</th><th>BOM Model</th><th>Qty Produced</th><th>Dispatch To</th><th>Order Ref</th><th>By</th><th>BOM OK</th><th>Remarks</th></tr></thead>
             <tbody id="dis-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="dis-empty" class="empty" style="display:none"><div class="ei">🚚</div><div class="et">No dispatch records</div></div>
       </div>
     </div>
@@ -351,12 +324,10 @@
         <div class="ta"><button class="btn bg bsm" onclick="loadWip()">↻ Refresh</button></div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Item</th><th>Category</th><th>Unit</th><th>Total Out (Store)</th><th>Dispatch Used</th><th>WIP Balance</th></tr></thead>
             <tbody id="wip-tb"><tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="wip-empty" class="empty" style="display:none"><div class="ei">🏭</div><div class="et">No WIP data</div></div>
       </div>
     </div>
@@ -376,12 +347,10 @@
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Item Name</th><th>Category</th><th>Unit</th><th>ADC</th><th>Lead Time</th><th>SF</th><th>MOQ</th><th>Max</th><th>ROP</th><th>MIT</th><th>Stock</th><th>Status</th><th></th></tr></thead>
             <tbody id="items-tb"><tr class="lrow"><td colspan="13"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="items-empty" class="empty" style="display:none"><div class="ei">📦</div><div class="et">No items</div><div class="es">Click + Add Item</div></div>
       </div>
     </div>
@@ -396,12 +365,10 @@
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>BOM Name</th><th>Alias</th><th>Produces</th><th>Components</th><th>Status</th><th></th></tr></thead>
             <tbody id="bom-tb"><tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="bom-empty" class="empty" style="display:none"><div class="ei">🔧</div><div class="et">No BOM models</div></div>
       </div>
     </div>
@@ -418,8 +385,7 @@
             <option>Nickel</option><option>Consumable</option><option>Packaging</option><option>Other</option>
           </select>
           <select class="inp" id="stock-status-f" style="width:120px;" onchange="filterStock()">
-            <option value="">All Status</option>
-            <option>Critical</option><option>Reorder</option><option>OK</option>
+            <option value="">All Status</option><option>Critical</option><option>Reorder</option><option>OK</option>
           </select>
           <button class="btn bg bsm" onclick="loadStock()">↻ Refresh</button>
           <button class="btn bg bsm" onclick="toggleStockView()" id="stock-view-btn">🌳 Tree View</button>
@@ -427,12 +393,10 @@
       </div>
       <div id="stock-tree" style="display:none;"></div>
       <div class="card" id="stock-table-wrap">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Item Name</th><th>Category</th><th>Brand</th><th>Unit</th><th>ROP</th><th>MIT</th><th>Current Stock</th><th>Order Qty</th><th>Status</th></tr></thead>
             <tbody id="stock-tb"><tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="stock-empty" class="empty" style="display:none"><div class="ei">📈</div><div class="et">No data</div></div>
       </div>
     </div>
@@ -487,39 +451,33 @@
         <div class="ta"><button class="btn bp" onclick="saveOpeningStock()">💾 Save Opening Stock</button></div>
       </div>
       <div style="background:var(--amber-l);border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amber);">
-        ⚠ This is a one-time setup. Enter existing stock quantities. These will be the base for all future calculations.
+        ⚠ This is a one-time setup. Enter existing stock quantities.
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Item Name</th><th>SKU Code</th><th>Unit</th><th>Opening Qty</th><th>Remarks</th></tr></thead>
             <tbody id="opening-tb"><tr class="lrow"><td colspan="5"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
       </div>
     </div>
 
     <!-- INDENT / PO -->
     <div class="page" id="page-indent">
       <div class="tb">
-        <div class="pt"><h1>Indent / PO</h1><p>Track purchase orders — supplier orders, expected dates, received status</p></div>
+        <div class="pt"><h1>Indent / PO</h1><p>Track purchase orders</p></div>
         <div class="ta">
           <select class="inp" id="indent-status-f" style="width:140px;" onchange="loadIndents()">
-            <option value="">All</option>
-            <option value="Pending">Pending</option>
-            <option value="Received">Received</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value="">All</option><option value="Pending">Pending</option>
+            <option value="Received">Received</option><option value="Cancelled">Cancelled</option>
           </select>
           <button class="btn bp" onclick="openIndentModal()">+ New Indent</button>
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
+        <div class="tw"><table>
             <thead><tr><th>Indent ID</th><th>Date</th><th>Item</th><th>SKU</th><th>Qty</th><th>Supplier</th><th>Expected</th><th>Status</th><th>Remarks</th><th></th></tr></thead>
             <tbody id="indent-tb"><tr class="lrow"><td colspan="10"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="indent-empty" class="empty" style="display:none"><div class="ei">📋</div><div class="et">No indents yet</div></div>
       </div>
     </div>
@@ -530,21 +488,17 @@
         <div class="pt"><h1>Material Requests</h1><p>Requests from production — review and issue material</p></div>
         <div class="ta">
           <select class="inp" id="req-status-f" style="width:140px;" onchange="loadRequests()">
-            <option value="Pending">Pending</option>
-            <option value="">All</option>
-            <option value="Closed">Closed</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value="Pending">Pending</option><option value="">All</option>
+            <option value="Closed">Closed</option><option value="Cancelled">Cancelled</option>
           </select>
           <button class="btn bg bsm" onclick="loadRequests()">↻ Refresh</button>
         </div>
       </div>
       <div class="card">
-        <div class="tw">
-          <table>
-            <thead><tr><th>Date</th><th>Time</th><th>Item</th><th>Qty Requested</th><th>Unit</th><th>Department</th><th>Requested By</th><th>Remarks</th><th>Status</th><th></th></tr></thead>
+        <div class="tw"><table>
+            <thead><tr><th>Date</th><th>Time</th><th>Item</th><th>Qty</th><th>Unit</th><th>Department</th><th>Requested By</th><th>Remarks</th><th>Status</th><th></th></tr></thead>
             <tbody id="req-tb"><tr class="lrow"><td colspan="10"><span class="loader"></span></td></tr></tbody>
-          </table>
-        </div>
+        </table></div>
         <div id="req-empty" class="empty" style="display:none"><div class="ei">🔔</div><div class="et">Koi pending request nahi</div></div>
       </div>
     </div>
@@ -561,21 +515,16 @@
     <div class="mb">
       <div class="fg">
         <div class="fi full"><label class="inp-label">Item *</label><select class="inp" id="in-item" onchange="updInwardInfo()"></select></div>
-        <div class="fi full" id="in-stock-info" style="display:none">
-          <div class="stock-info">Stock: <strong id="in-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="in-rp">—</strong> &nbsp;|&nbsp; In Transit: <strong id="in-mit">—</strong></div>
-        </div>
+        <div class="fi full" id="in-stock-info" style="display:none"><div class="stock-info">Stock: <strong id="in-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="in-rp">—</strong> &nbsp;|&nbsp; In Transit: <strong id="in-mit">—</strong></div></div>
         <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="in-qty" type="number" min="1" placeholder="0"></div>
         <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="in-date" type="date"></div>
-        <div class="fi"><label class="inp-label">Supplier / Party</label><input class="inp" id="in-supplier" placeholder="Supplier name"></div>
+        <div class="fi"><label class="inp-label">Supplier</label><input class="inp" id="in-supplier" placeholder="Supplier name"></div>
         <div class="fi"><label class="inp-label">Invoice / PO No.</label><input class="inp" id="in-invoice" placeholder="INV-001"></div>
         <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="in-by" placeholder="Ajay"></div>
         <div class="fi"><label class="inp-label">Remarks</label><input class="inp" id="in-remarks" placeholder="Optional"></div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('inward-modal')">Cancel</button>
-      <button class="btn bgn" id="in-btn" onclick="saveInward()">Save Inward</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('inward-modal')">Cancel</button><button class="btn bgn" id="in-btn" onclick="saveInward()">Save Inward</button></div>
   </div>
 </div>
 
@@ -586,9 +535,7 @@
     <div class="mb">
       <div class="fg">
         <div class="fi full"><label class="inp-label">Item *</label><select class="inp" id="out-item" onchange="updOutwardInfo()"></select></div>
-        <div class="fi full" id="out-stock-info" style="display:none">
-          <div class="stock-info">Available: <strong id="out-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="out-rp">—</strong></div>
-        </div>
+        <div class="fi full" id="out-stock-info" style="display:none"><div class="stock-info">Available: <strong id="out-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="out-rp">—</strong></div></div>
         <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="out-qty" type="number" min="1" placeholder="0"></div>
         <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="out-date" type="date"></div>
         <div class="fi"><label class="inp-label">Department *</label>
@@ -604,10 +551,7 @@
         <div class="fi"><label class="inp-label">Remarks</label><input class="inp" id="out-remarks" placeholder="Optional"></div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('outward-modal')">Cancel</button>
-      <button class="btn brd" id="out-btn" onclick="saveOutward()">Save Outward</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('outward-modal')">Cancel</button><button class="btn brd" id="out-btn" onclick="saveOutward()">Save Outward</button></div>
   </div>
 </div>
 
@@ -627,10 +571,7 @@
       </div>
       <div id="dis-preview"></div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('dispatch-modal')">Cancel</button>
-      <button class="btn bp" id="dis-btn" onclick="saveDispatch()">Confirm Dispatch</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('dispatch-modal')">Cancel</button><button class="btn bp" id="dis-btn" onclick="saveDispatch()">Confirm Dispatch</button></div>
   </div>
 </div>
 
@@ -679,7 +620,7 @@
               <option value="Metres">Metres</option><option value="Roll">Roll</option><option value="Set">Set</option>
             </select>
           </div>
-          <div class="fi"><label class="inp-label">ADC <span style="font-weight:400;color:var(--muted);">(Daily use)</span></label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
+          <div class="fi"><label class="inp-label">ADC (Daily use)</label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
           <div class="fi"><label class="inp-label">Lead Time (Days)</label><input class="inp" id="f-lt" type="number" min="0" placeholder="0" oninput="updROP()"></div>
           <div class="fi"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"></div>
           <div class="fi full"><label class="inp-label">Material In Transit</label><input class="inp" id="f-mit" type="number" min="0" placeholder="0"></div>
@@ -691,10 +632,7 @@
         </div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('item-modal')">Cancel</button>
-      <button class="btn bp" id="im-btn" onclick="saveItem()">Save Item</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('item-modal')">Cancel</button><button class="btn bp" id="im-btn" onclick="saveItem()">Save Item</button></div>
   </div>
 </div>
 
@@ -710,10 +648,7 @@
         <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="bm-remarks" placeholder="Optional"></div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('bom-add-modal')">Cancel</button>
-      <button class="btn bp" id="bm-btn" onclick="saveBomModel()">Save</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('bom-add-modal')">Cancel</button><button class="btn bp" id="bm-btn" onclick="saveBomModel()">Save</button></div>
   </div>
 </div>
 
@@ -726,10 +661,7 @@
       <div id="bom-rows-wrap"></div>
       <button class="btn bg bsm" style="margin-top:8px;" onclick="addBomRow()">+ Add Component</button>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('bom-edit-modal')">Cancel</button>
-      <button class="btn bp" id="bom-edit-btn" onclick="saveBomItems()">Save BOM</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('bom-edit-modal')">Cancel</button><button class="btn bp" id="bom-edit-btn" onclick="saveBomItems()">Save BOM</button></div>
   </div>
 </div>
 
@@ -747,10 +679,7 @@
         <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="ind-remarks" placeholder="Optional"></div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('indent-modal')">Cancel</button>
-      <button class="btn bp" id="ind-btn" onclick="saveIndent()">Save Indent</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('indent-modal')">Cancel</button><button class="btn bp" id="ind-btn" onclick="saveIndent()">Save Indent</button></div>
   </div>
 </div>
 
@@ -768,13 +697,10 @@
         <div class="fi full"><label class="inp-label">Recorded By</label><input class="inp" id="recv-by" placeholder="Ajay"></div>
       </div>
     </div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('receive-modal')">Cancel</button>
-      <button class="btn bgn" id="recv-btn" onclick="confirmReceive()">Receive & Add to Stock</button>
-    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('receive-modal')">Cancel</button><button class="btn bgn" id="recv-btn" onclick="confirmReceive()">Receive & Add to Stock</button></div>
   </div>
 </div>
 
-<script src="app.js?v=46"></script>
+<script src="app.js?v=47"></script>
 </body>
 </html>
