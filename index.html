@@ -3,327 +3,727 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Material Request — Litpax</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #f0f2f7; font-family: 'DM Sans', sans-serif; min-height: 100vh; padding: 20px 16px 48px; }
-.header { display: flex; align-items: center; gap: 12px; max-width: 620px; margin: 0 auto 20px; }
-.logo-box { width: 40px; height: 40px; background: linear-gradient(135deg, #162444, #243a72); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-family: 'DM Mono', monospace; font-weight: 700; font-size: 17px; color: #f59e0b; flex-shrink: 0; box-shadow: 0 4px 12px rgba(22,36,68,.2); }
-.header-text .title { font-size: 15px; font-weight: 700; color: #162444; }
-.header-text .sub { font-size: 10px; color: #6b7280; letter-spacing: .8px; text-transform: uppercase; }
-.card { background: #fff; border-radius: 14px; box-shadow: 0 4px 20px rgba(15,29,53,.08); max-width: 620px; margin: 0 auto; overflow: hidden; }
-.card-header { background: linear-gradient(135deg, #162444, #1e3260); padding: 18px 22px; color: #fff; }
-.card-header h1 { font-size: 17px; font-weight: 700; }
-.card-header p { font-size: 12px; color: rgba(255,255,255,.55); margin-top: 3px; }
-.card-body { padding: 20px 22px; }
-.top-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-.field label { display: block; font-size: 10px; font-weight: 700; color: #374151; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
-.field label span { color: #dc2626; }
-.inp { width: 100%; background: #f6f8fc; border: 1.5px solid #dde3ef; border-radius: 8px; padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #0f1d35; outline: none; transition: all .15s; }
-.inp:focus { border-color: #2558e8; box-shadow: 0 0 0 3px rgba(37,88,232,.1); background: #fff; }
-.inp::placeholder { color: #9ca3af; }
-select.inp { cursor: pointer; }
-.section { margin-bottom: 18px; border: 1px solid #dde3ef; border-radius: 10px; overflow: hidden; }
-.section-header { background: #f6f8fc; padding: 10px 14px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #dde3ef; }
-.section-header .icon { font-size: 15px; }
-.section-header h3 { font-size: 11px; font-weight: 700; color: #162444; text-transform: uppercase; letter-spacing: .8px; }
-.item-row { display: flex; align-items: center; padding: 8px 14px; border-bottom: 1px solid #f0f2f7; gap: 10px; }
-.item-row:last-child { border-bottom: none; }
-.item-label { flex: 1; font-size: 13px; color: #374151; font-weight: 500; }
-.item-label .sub { font-size: 10px; color: #9ca3af; display: block; margin-top: 1px; }
-.qty-inp { width: 80px; background: #f6f8fc; border: 1.5px solid #dde3ef; border-radius: 7px; padding: 6px 10px; text-align: center; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: #162444; outline: none; transition: all .15s; }
-.qty-inp:focus { border-color: #2558e8; background: #fff; }
-.unit-label { font-size: 11px; color: #9ca3af; width: 36px; text-align: left; }
-.wire-row { display: grid; grid-template-columns: 1fr 70px 70px 36px; gap: 6px; align-items: center; padding: 8px 14px; border-bottom: 1px solid #f0f2f7; font-size: 12px; }
-.wire-row:last-child { border-bottom: none; }
-.wire-header { display: grid; grid-template-columns: 1fr 70px 70px 36px; gap: 6px; padding: 6px 14px; font-size: 10px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #dde3ef; background: #fafbff; }
-.other-row { padding: 8px 14px; }
-.other-inp { width: 100%; background: #f6f8fc; border: 1.5px solid #dde3ef; border-radius: 7px; padding: 7px 12px; font-family: 'DM Sans', sans-serif; font-size: 12px; color: #374151; outline: none; }
-.other-inp:focus { border-color: #2558e8; background: #fff; }
-.remarks-section { margin-bottom: 20px; }
-.submit-btn { width: 100%; background: linear-gradient(135deg, #162444, #1e3260); color: #fff; border: none; border-radius: 10px; padding: 14px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
-.submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(22,36,68,.3); }
-.submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-.success-card { display: none; background: #fff; border-radius: 14px; box-shadow: 0 4px 20px rgba(15,29,53,.08); max-width: 620px; margin: 0 auto; padding: 48px 24px; text-align: center; }
-.success-icon { font-size: 60px; margin-bottom: 16px; }
-.success-title { font-size: 22px; font-weight: 700; color: #162444; margin-bottom: 8px; }
-.success-sub { font-size: 13px; color: #6b7280; margin-bottom: 20px; line-height: 1.7; }
-.success-id { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 10px 16px; margin-bottom: 24px; font-family: 'DM Mono', monospace; font-size: 13px; font-weight: 600; color: #16a34a; line-height: 1.8; }
-.new-btn { background: #f0f2f7; color: #162444; border: none; border-radius: 10px; padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; }
-.new-btn:hover { background: #e0e4ee; }
-.footer { text-align: center; font-size: 11px; color: #9ca3af; margin-top: 20px; max-width: 620px; margin-left: auto; margin-right: auto; }
-.overlay { display: none; position: fixed; inset: 0; background: rgba(15,29,53,.4); backdrop-filter: blur(3px); z-index: 99; align-items: center; justify-content: center; }
-.overlay.show { display: flex; }
-.spinner { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-@media (max-width: 480px) {
-  .top-row { grid-template-columns: 1fr; }
-  .wire-row, .wire-header { grid-template-columns: 1fr 60px 60px 30px; gap: 4px; }
-}
-</style>
+<title>Litpax IMS</title>
+<link rel="stylesheet" href="style.css?v=5">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
-<div class="header">
-  <div class="logo-box">L</div>
-  <div class="header-text">
-    <div class="title">Litpax Technology Pvt. Ltd.</div>
-    <div class="sub">Production Material Requisition Form</div>
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-bg-shape" style="width:600px;height:600px;top:-200px;right:-100px;"></div>
+  <div class="login-bg-shape" style="width:400px;height:400px;bottom:-150px;left:30%;"></div>
+  <div class="login-left">
+    <div class="login-left-inner">
+      <div class="login-logo-box">L</div>
+      <div class="login-brand">Litpax IMS</div>
+      <div class="login-tagline">Inventory Management System</div>
+      <div class="login-stats">
+        <div class="login-stat"><span class="login-stat-icon">🏪</span><div class="login-stat-text"><strong>Store Management</strong>Real-time inventory tracking</div></div>
+        <div class="login-stat"><span class="login-stat-icon">🏭</span><div class="login-stat-text"><strong>Production Flow</strong>WIP & Finished Goods</div></div>
+        <div class="login-stat"><span class="login-stat-icon">📊</span><div class="login-stat-text"><strong>Smart Reports</strong>Daily closing & analytics</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-card">
+      <div class="login-card-title">Welcome back 👋</div>
+      <div class="login-card-sub">Select your role and enter your PIN</div>
+      <label class="login-field-label">Select Role</label>
+      <div class="role-grid" id="role-grid">
+        <button class="role-btn" onclick="selectRole('admin')" id="role-admin"><div class="role-icon">👑</div><div class="role-name">Admin</div><div class="role-sub">Full Access</div></button>
+        <button class="role-btn" onclick="selectRole('ajay')" id="role-ajay"><div class="role-icon">📦</div><div class="role-name">Ajay</div><div class="role-sub">Store</div></button>
+        <button class="role-btn" onclick="selectRole('sandeep')" id="role-sandeep"><div class="role-icon">🏭</div><div class="role-name">Sandeep</div><div class="role-sub">Production</div></button>
+      </div>
+      <label class="login-field-label">Enter PIN</label>
+      <div class="pin-wrap">
+        <input type="password" class="pin-input" id="login-pin" maxlength="6" placeholder="• • • • • •" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <div class="login-err" id="login-err">❌ Galat PIN — dobara try karein</div>
+      <button class="login-btn" onclick="doLogin()"><span>Login</span><span>→</span></button>
+      <div class="login-footer">Litpax Technology Pvt. Ltd. · Designed by Darpan</div>
+    </div>
   </div>
 </div>
 
-<div class="card" id="form-card">
-  <div class="card-header">
-    <h1>📋 Material Requisition</h1>
-    <p>Fill required quantities — Store manager will be notified</p>
+<div class="shell" id="app-shell" style="display:none;">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="slogo">
+      <div class="slogo-row">
+        <div class="slogo-box">L</div>
+        <div class="slogo-text"><div class="n">Litpax IMS</div><div class="s">Inventory</div></div>
+      </div>
+    </div>
+    <nav>
+      <div class="ng">
+        <div class="ng-label">Overview</div>
+        <div class="ni active" onclick="showPage('dashboard')" data-page="dashboard"><span class="ic">📊</span><span>Dashboard</span></div>
+        <div class="ni" onclick="showPage('ajay-dash')" data-page="ajay-dash"><span class="ic">📦</span><span>Dashboard</span></div>
+        <div class="ni" onclick="showPage('sandeep-dash')" data-page="sandeep-dash"><span class="ic">🏭</span><span>Dashboard</span></div>
+      </div>
+      <div class="ng">
+        <div class="ng-label">Transactions</div>
+        <div class="ni" onclick="showPage('inward')" data-page="inward"><span class="ic">📥</span><span>Inward</span></div>
+        <div class="ni" onclick="showPage('outward')" data-page="outward"><span class="ic">📤</span><span>Outward</span></div>
+        <div class="ni" onclick="showPage('dispatch')" data-page="dispatch"><span class="ic">🚚</span><span>Dispatch</span></div>
+        <div class="ni" onclick="showPage('wip')" data-page="wip"><span class="ic">🏭</span><span>WIP Tracker</span></div>
+        <div class="ni" onclick="showPage('requests')" data-page="requests"><span class="ic">🔔</span><span>Material Requests</span><span class="nbadge" id="nb-req" style="display:none">0</span></div>
+      </div>
+      <div class="ng">
+        <div class="ng-label">Masters</div>
+        <div class="ni" onclick="showPage('items')" data-page="items"><span class="ic">📦</span><span>Items</span></div>
+        <div class="ni" onclick="showPage('opening')" data-page="opening"><span class="ic">🏁</span><span>Opening Stock</span></div>
+        <div class="ni" onclick="showPage('bom')" data-page="bom"><span class="ic">🔧</span><span>BOM Manager</span></div>
+        <div class="ni" onclick="showPage('indent')" data-page="indent"><span class="ic">📋</span><span>Indent / PO</span><span class="nbadge" id="nb-indent" style="display:none">0</span></div>
+      </div>
+      <div class="ng">
+        <div class="ng-label">Reports</div>
+        <div class="ni" onclick="showPage('stock')" data-page="stock"><span class="ic">📈</span><span>Stock Summary</span></div>
+        <div class="ni" onclick="showPage('reorder')" data-page="reorder"><span class="ic">⚠️</span><span>Reorder</span><span class="nbadge" id="nb" style="display:none">0</span></div>
+        <div class="ni" onclick="showPage('closing')" data-page="closing"><span class="ic">🗓️</span><span>Daily Closing</span></div>
+      </div>
+
+
+    </nav>
+    <div class="sfoot">
+      <div class="conn-dot-row">
+        <div class="dot loading" id="api-dot"></div>
+        <span class="conn-lbl" id="api-lbl">Connecting...</span>
+      </div>
+      <div id="logout-btn" style="display:none;margin-bottom:8px;">
+        <button onclick="logout()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px;font-family:var(--sans);font-size:11px;font-weight:600;color:rgba(255,255,255,.5);cursor:pointer;transition:all .15s;" onmouseover="this.style.background='rgba(220,38,38,.2)';this.style.color='#fca5a5';this.style.borderColor='rgba(220,38,38,.3)'" onmouseout="this.style.background='rgba(255,255,255,.06)';this.style.color='rgba(255,255,255,.5)';this.style.borderColor='rgba(255,255,255,.12)'">
+          <span>🚪</span><span id="logout-role-label"></span><span>Logout</span>
+        </button>
+      </div>
+      <div class="foot-brand">Designed by Darpan</div>
+    </div>
   </div>
-  <div class="card-body">
 
-    <div class="top-row">
-      <div class="field">
-        <label>Your Name <span>*</span></label>
-        <input class="inp" id="f-name" placeholder="Enter your name">
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ADMIN DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:22px;font-weight:700;color:var(--navy);" id="dash-greeting">Good morning 👋</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px;" id="dash-date">—</div>
+        </div>
+        <button class="btn bg bsm" onclick="loadDash()">↻ Refresh</button>
       </div>
-      <div class="field">
-        <label>Department <span>*</span></label>
-        <select class="inp" id="f-dept">
-          <option value="">-- Select --</option>
-          <option>Volt Wing</option><option>Ampere Wing</option><option>Volt x Ampere Wing</option>
-          <option>Mega Grid</option><option>Cathodic Wing</option><option>Future Cell</option>
-          <option>Phoenix Wing</option><option>Other</option>
-        </select>
+
+      <!-- KPI — 3 CARDS ONLY -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
+        <div class="kpi-card kpi-blue"><div class="kpi-icon">📦</div><div class="kpi-val" id="s-total">—</div><div class="kpi-label">Total Items</div></div>
+        <div class="kpi-card kpi-purple"><div class="kpi-icon">🏭</div><div class="kpi-val" id="s-wip">—</div><div class="kpi-label">Items in WIP</div></div>
+        <div class="kpi-card kpi-red" style="cursor:pointer;" onclick="showPage('reorder')"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="s-ro">—</div><div class="kpi-label">Reorder Alerts</div></div>
       </div>
+
+      <!-- CHARTS ROW 1: Reorder + WIP -->
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#fff8f0,#fff3e8);">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">⚠️</span><h2>Reorder / Critical Items</h2></div>
+            <button class="btn bg bsm" onclick="showPage('reorder')">View All →</button>
+          </div>
+          <div style="padding:16px 18px;" id="reorder-chart-wrap">
+            <canvas id="reorderChart" height="220"></canvas>
+          </div>
+        </div>
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#faf5ff,#f3eeff);">
+            <div style="display:flex;align-items:center;gap:6px;"><span style="font-size:15px;">🏭</span><h2>WIP — In Production</h2></div>
+          </div>
+          <div style="padding:16px 18px;" id="wip-chart-wrap">
+            <canvas id="wipChart" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+
     </div>
 
-    <!-- CELLS -->
-    <div class="section">
-      <div class="section-header"><span class="icon">🔋</span><h3>Cells</h3></div>
-      <div class="item-row"><span class="item-label">3.6V 4.5AH</span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-1"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">3.6V 5AH</span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-2"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">3.2V 100AH</span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-3"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">3.2V 150AH</span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-4"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">3.2V 314AH</span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-5"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Other <span class="sub">Naam likhein</span></span><input class="qty-inp" type="number" min="0" placeholder="0" id="cell-other-qty"><span class="unit-label">Pcs</span></div>
-      <div class="other-row"><input class="other-inp" type="text" id="cell-other-name" placeholder="Other cell name..."></div>
-    </div>
-
-    <!-- BMS -->
-    <div class="section">
-      <div class="section-header"><span class="icon">⚡</span><h3>BMS</h3></div>
-      <div class="item-row"><span class="item-label">10S 20Amp</span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-1"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">2-Wheeler BMS</span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-2"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">4S 100Amp</span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-3"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">8S 100Amp</span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-4"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">16S 100Amp</span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-5"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Other <span class="sub">Naam likhein</span></span><input class="qty-inp" type="number" min="0" placeholder="0" id="bms-other-qty"><span class="unit-label">Pcs</span></div>
-      <div class="other-row"><input class="other-inp" type="text" id="bms-other-name" placeholder="Other BMS name..."></div>
-    </div>
-
-    <!-- WIRE -->
-    <div class="section">
-      <div class="section-header"><span class="icon">🔌</span><h3>Wire</h3></div>
-      <div class="wire-header"><span>Size</span><span style="text-align:center;">Red</span><span style="text-align:center;">Black</span><span>Unit</span></div>
-      <div class="wire-row"><span>1mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-1-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-1-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>1.5mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-2-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-2-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>2.5mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-3-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-3-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>6mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-4-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-4-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>10mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-5-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-5-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>16mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-6-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-6-b"><span class="unit-label">m</span></div>
-      <div class="wire-row"><span>25mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-7-r"><input class="qty-inp" type="number" min="0" placeholder="0" id="wire-7-b"><span class="unit-label">m</span></div>
-    </div>
-
-    <!-- NICKEL -->
-    <div class="section">
-      <div class="section-header"><span class="icon">🪙</span><h3>Nickel Strip</h3></div>
-      <div class="item-row"><span class="item-label">21700</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-1"><span class="unit-label">Kg</span></div>
-      <div class="item-row"><span class="item-label">18650</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-2"><span class="unit-label">Kg</span></div>
-      <div class="item-row"><span class="item-label">32140</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-3"><span class="unit-label">Kg</span></div>
-      <div class="item-row"><span class="item-label">33140</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-4"><span class="unit-label">Kg</span></div>
-      <div class="item-row"><span class="item-label">Single Strip</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-5"><span class="unit-label">Kg</span></div>
-      <div class="item-row"><span class="item-label">Zig Zag</span><input class="qty-inp" type="number" min="0" placeholder="0" id="nkl-6"><span class="unit-label">Kg</span></div>
-    </div>
-
-    <!-- OTHER MATERIAL -->
-    <div class="section">
-      <div class="section-header"><span class="icon">🧰</span><h3>Other Material</h3></div>
-      <div class="item-row"><span class="item-label">Silicon Tube</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-1"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">PG7</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-2"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">PG9</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-3"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">PG13.5</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-4"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Pressure Vent</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-5"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">2 Wheeler Handle</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-6"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Thimble 2.5mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-7"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Thimble 25mm</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-8"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">BusBar</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-9"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Soldering Wire</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-10"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Rivet</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-11"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">MCB</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-12"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">SB50 Connector</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-13"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">ESS Connector</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-14"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Connector Red</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-15"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Connector Black</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-16"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Display</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-17"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Loose Screws</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-18"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Inverter Handle</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-19"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Spiral Pipe</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-20"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Glue Stick</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-21"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Stud</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-22"><span class="unit-label">Pcs</span></div>
-      <div class="item-row"><span class="item-label">Paper Cutter</span><input class="qty-inp" type="number" min="0" placeholder="0" id="oth-23"><span class="unit-label">Pcs</span></div>
-    </div>
-
-    <div class="remarks-section">
-      <div class="field">
-        <label>Remarks (Optional)</label>
-        <input class="inp" id="f-remarks" placeholder="Additional notes...">
+    <!-- AJAY DASHBOARD -->
+    <div class="page" id="page-ajay-dash">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--navy);" id="ajay-greeting">Good morning, Ajay 👋</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="ajay-date">—</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn bgn" onclick="showPage('inward');openInwardModal()">+ New Inward</button>
+          <button class="btn brd" onclick="showPage('outward');openOutwardModal()">+ New Outward</button>
+          <button class="btn bg bsm" onclick="loadAjayDash()">↻</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+        <div class="kpi-card kpi-blue" style="cursor:default;"><div class="kpi-icon">📦</div><div class="kpi-val" id="aj-total">—</div><div class="kpi-label">Total Items</div></div>
+        <div class="kpi-card kpi-red" style="cursor:pointer;" onclick="showPage('reorder')"><div class="kpi-icon">🔴</div><div class="kpi-val" id="aj-critical">—</div><div class="kpi-label">Critical</div></div>
+        <div class="kpi-card kpi-orange" style="cursor:pointer;" onclick="showPage('reorder')"><div class="kpi-icon">⚠️</div><div class="kpi-val" id="aj-reorder">—</div><div class="kpi-label">Reorder</div></div>
+        <div class="kpi-card kpi-purple" style="cursor:pointer;" onclick="showPage('requests')"><div class="kpi-icon">🔔</div><div class="kpi-val" id="aj-req-count">—</div><div class="kpi-label">Pending Requests</div></div>
+      </div>
+      <div class="g2" style="margin-bottom:14px;">
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>📥</span><h2>Today's Inward</h2></div>
+            <span id="aj-in-count" style="font-size:11px;font-weight:700;color:var(--green);">—</span>
+          </div>
+          <div id="aj-inward-list"><div class="empty" style="padding:20px;"><div class="ei">📥</div><div class="et">No inward today</div></div></div>
+        </div>
+        <div class="card">
+          <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
+            <div style="display:flex;align-items:center;gap:6px;"><span>📤</span><h2>Today's Outward</h2></div>
+            <span id="aj-out-count" style="font-size:11px;font-weight:700;color:var(--orange);">—</span>
+          </div>
+          <div id="aj-outward-list"><div class="empty" style="padding:20px;"><div class="ei">📤</div><div class="et">No outward today</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch" style="background:linear-gradient(90deg,#f0f4ff,#eef2ff);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>🔔</span><h2>Pending Material Requests</h2></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="nbadge" id="aj-req-badge" style="display:none;">0</span>
+            <button class="btn bg bsm" onclick="showPage('requests')">View All →</button>
+          </div>
+        </div>
+        <div id="aj-requests"><div class="empty" style="padding:20px;"><div class="ei">✅</div><div class="et">No pending requests</div></div></div>
       </div>
     </div>
 
-    <button class="submit-btn" id="submit-btn" onclick="submitForm()">
-      <span>📤</span> Submit Request
-    </button>
+    <!-- SANDEEP DASHBOARD -->
+    <div class="page" id="page-sandeep-dash">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+        <div>
+          <div style="font-size:20px;font-weight:700;color:var(--navy);" id="sandeep-greeting">Good morning, Sandeep 👋</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;" id="sandeep-date">—</div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn bp" onclick="showPage('dispatch');openDispatchModal()">+ New Dispatch</button>
+          <button class="btn bg bsm" onclick="loadSandeepDash()">↻</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="ch" style="background:linear-gradient(90deg,#fff7ed,#fff3e8);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>📤</span><h2>Today — Received from Store</h2></div>
+          <span id="sd-issue-summary" style="font-size:12px;font-weight:600;color:var(--orange);">—</span>
+        </div>
+        <div id="sd-issue-section"><div class="empty" style="padding:24px;"><div class="ei">📤</div><div class="et">Nothing received today</div></div></div>
+      </div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="ch" style="background:linear-gradient(90deg,#faf5ff,#f3eeff);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>🏭</span><h2>WIP — In Production</h2></div>
+          <span id="sd-wip-summary" style="font-size:12px;font-weight:600;color:var(--purple);">—</span>
+        </div>
+        <div id="sd-wip-section"><div class="empty" style="padding:24px;"><div class="ei">🏭</div><div class="et">Nothing in WIP</div></div></div>
+      </div>
+      <div class="card">
+        <div class="ch" style="background:linear-gradient(90deg,#f0fdf4,#e8faf0);">
+          <div style="display:flex;align-items:center;gap:6px;"><span>🚚</span><h2>Today — Dispatched</h2></div>
+          <span id="sd-dispatch-summary" style="font-size:12px;font-weight:600;color:var(--green);">—</span>
+        </div>
+        <div id="sd-dispatch-section"><div class="empty" style="padding:24px;"><div class="ei">🚚</div><div class="et">No dispatch today</div></div></div>
+      </div>
+    </div>
+
+    <!-- INWARD -->
+    <div class="page" id="page-inward">
+      <div class="tb">
+        <div class="pt"><h1>Inward</h1><p>Bahar se store mein aaya raw material</p></div>
+        <div class="ta"><button class="btn bgn" onclick="openInwardModal()">+ New Inward</button></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><h2>Filters</h2>
+          <div class="ta">
+            <input type="date" class="inp" id="in-date-f" style="width:150px;" onchange="loadInward()">
+            <button class="btn bg bsm" onclick="document.getElementById('in-date-f').value='';loadInward()">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Supplier</th><th>Invoice/PO</th><th>By</th><th>Remarks</th></tr></thead>
+            <tbody id="in-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="in-empty" class="empty" style="display:none"><div class="ei">📥</div><div class="et">No inward records</div></div>
+      </div>
+    </div>
+
+    <!-- OUTWARD -->
+    <div class="page" id="page-outward">
+      <div class="tb">
+        <div class="pt"><h1>Outward</h1><p>Store se production ko diya — daily</p></div>
+        <div class="ta"><button class="btn brd" onclick="openOutwardModal()">+ New Outward</button></div>
+      </div>
+      <div class="card" style="margin-bottom:12px;">
+        <div class="ch"><h2>Filters</h2>
+          <div class="ta">
+            <input type="date" class="inp" id="out-date-f" style="width:150px;" onchange="loadOutward()">
+            <select class="inp" id="out-dept-f" style="width:160px;" onchange="loadOutward()">
+              <option value="">All Departments</option>
+              <option>Volt Wing</option><option>Ampere Wing</option><option>Volt x Ampere Wing</option>
+              <option>Mega Grid</option><option>Cathodic Wing</option><option>Future Cell</option>
+              <option>Phoenix Wing</option><option>Other</option>
+            </select>
+            <button class="btn bg bsm" onclick="clearOutFilters()">Clear</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Department</th><th>Issued To</th><th>By</th><th>Remarks</th></tr></thead>
+            <tbody id="out-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="out-empty" class="empty" style="display:none"><div class="ei">📤</div><div class="et">No outward records</div></div>
+      </div>
+    </div>
+
+    <!-- DISPATCH -->
+    <div class="page" id="page-dispatch">
+      <div class="tb">
+        <div class="pt"><h1>Dispatch</h1><p>Production → Finished Goods — BOM se auto deduction</p></div>
+        <div class="ta"><button class="btn bp" onclick="openDispatchModal()">+ New Dispatch</button></div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Date</th><th>BOM Model</th><th>Qty Produced</th><th>Dispatch To</th><th>Order Ref</th><th>By</th><th>BOM OK</th><th>Remarks</th></tr></thead>
+            <tbody id="dis-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="dis-empty" class="empty" style="display:none"><div class="ei">🚚</div><div class="et">No dispatch records</div></div>
+      </div>
+    </div>
+
+    <!-- WIP TRACKER -->
+    <div class="page" id="page-wip">
+      <div class="tb">
+        <div class="pt"><h1>WIP Tracker</h1><p>Production mein kya kya hai — running balance</p></div>
+        <div class="ta"><button class="btn bg bsm" onclick="loadWip()">↻ Refresh</button></div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Item</th><th>Category</th><th>Unit</th><th>Total Out (Store)</th><th>Dispatch Used</th><th>WIP Balance</th></tr></thead>
+            <tbody id="wip-tb"><tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="wip-empty" class="empty" style="display:none"><div class="ei">🏭</div><div class="et">No WIP data</div></div>
+      </div>
+    </div>
+
+    <!-- ITEMS -->
+    <div class="page" id="page-items">
+      <div class="tb">
+        <div class="pt"><h1>Items</h1><p>Raw materials, components — reorder settings</p></div>
+        <div class="ta">
+          <input class="inp" id="item-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterItems()">
+          <select class="inp" id="item-cat-f" style="width:160px;" onchange="filterItems()">
+            <option value="">All Categories</option>
+            <option>BMS</option><option>Cells</option><option>Charger</option><option>Wire</option>
+            <option>Nickel</option><option>Consumable</option><option>Packaging</option><option>Other</option>
+          </select>
+          <button class="btn bp" onclick="openItemModal()">+ Add Item</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Item Name</th><th>Category</th><th>Unit</th><th>ADC</th><th>Lead Time</th><th>SF</th><th>MOQ</th><th>Max</th><th>ROP</th><th>MIT</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <tbody id="items-tb"><tr class="lrow"><td colspan="13"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="items-empty" class="empty" style="display:none"><div class="ei">📦</div><div class="et">No items</div><div class="es">Click + Add Item</div></div>
+      </div>
+    </div>
+
+    <!-- BOM MANAGER -->
+    <div class="page" id="page-bom">
+      <div class="tb">
+        <div class="pt"><h1>BOM Manager</h1><p>Battery model recipes — components aur quantities</p></div>
+        <div class="ta">
+          <input class="inp" id="bom-search" placeholder="🔍 Search model..." style="width:200px;" oninput="filterBom()">
+          <button class="btn bp" onclick="openBomAddModal()">+ Add BOM</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>BOM Name</th><th>Alias</th><th>Produces</th><th>Components</th><th>Status</th><th></th></tr></thead>
+            <tbody id="bom-tb"><tr class="lrow"><td colspan="6"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="bom-empty" class="empty" style="display:none"><div class="ei">🔧</div><div class="et">No BOM models</div></div>
+      </div>
+    </div>
+
+    <!-- STOCK SUMMARY -->
+    <div class="page" id="page-stock">
+      <div class="tb">
+        <div class="pt"><h1>Stock Summary</h1><p>Category → Brand → Model — Live Stock</p></div>
+        <div class="ta">
+          <input class="inp" id="stock-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterStock()">
+          <select class="inp" id="stock-cat-f" style="width:140px;" onchange="filterStock()">
+            <option value="">All Categories</option>
+            <option>BMS</option><option>Cells</option><option>Charger</option><option>Wire</option>
+            <option>Nickel</option><option>Consumable</option><option>Packaging</option><option>Other</option>
+          </select>
+          <select class="inp" id="stock-status-f" style="width:120px;" onchange="filterStock()">
+            <option value="">All Status</option><option>Critical</option><option>Reorder</option><option>OK</option>
+          </select>
+          <button class="btn bg bsm" onclick="loadStock()">↻ Refresh</button>
+          <button class="btn bg bsm" onclick="toggleStockView()" id="stock-view-btn">🌳 Tree View</button>
+        </div>
+      </div>
+      <div id="stock-tree" style="display:none;"></div>
+      <div class="card" id="stock-table-wrap">
+        <div class="tw"><table>
+            <thead><tr><th>Item Name</th><th>Category</th><th>Brand</th><th>Unit</th><th>ROP</th><th>MIT</th><th>Current Stock</th><th>Order Qty</th><th>Status</th></tr></thead>
+            <tbody id="stock-tb"><tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="stock-empty" class="empty" style="display:none"><div class="ei">📈</div><div class="et">No data</div></div>
+      </div>
+    </div>
+
+    <!-- REORDER -->
+    <div class="page" id="page-reorder">
+      <div class="tb">
+        <div class="pt"><h1>Reorder Sheet</h1><p>Items needing immediate restocking</p></div>
+        <div class="ta">
+          <button class="btn bp" onclick="openCreatePO()">📋 Create PO</button>
+          <button class="btn bg bsm" onclick="loadReorder()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="ro-content"><div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div></div>
+    </div>
+
+    <!-- DAILY CLOSING -->
+    <div class="page" id="page-closing">
+      <div class="tb">
+        <div class="pt"><h1>Daily Closing</h1><p>End-of-day stock snapshot</p></div>
+        <div class="ta">
+          <button class="btn bg bsm" id="cl-tab-single" onclick="switchClTab('single')" style="border-color:var(--accent);color:var(--accent);">Single Day</button>
+          <button class="btn bg bsm" id="cl-tab-range" onclick="switchClTab('range')">Date Range</button>
+          <button class="btn bg bsm" id="cl-tab-heatmap" onclick="switchClTab('heatmap')">📅 Monthly Heatmap</button>
+        </div>
+      </div>
+      <div id="cl-single-wrap">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <input type="date" class="inp" id="cl-date" style="width:170px;">
+          <button class="btn bp" onclick="genClosing()">Generate</button>
+          <button class="btn bgn bsm" onclick="saveSnapshot()">💾 Save Snapshot</button>
+        </div>
+        <div id="cl-content"></div>
+      </div>
+      <div id="cl-range-wrap" style="display:none;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:12px;color:var(--muted);font-weight:600;">From</label>
+            <input type="date" class="inp" id="cl-from" style="width:160px;">
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:12px;color:var(--muted);font-weight:600;">To</label>
+            <input type="date" class="inp" id="cl-to" style="width:160px;">
+          </div>
+          <button class="btn bp" onclick="genHistory()">Show History</button>
+          <button class="btn bg bsm" onclick="exportHistoryCSV()">↓ Export CSV</button>
+        </div>
+        <div id="cl-history-content"></div>
+      </div>
+
+      <!-- Monthly Heatmap -->
+      <div id="cl-heatmap-wrap" style="display:none;">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <label style="font-size:12px;color:var(--muted);font-weight:600;">Month</label>
+            <input type="month" class="inp" id="hm-month" style="width:170px;">
+          </div>
+          <button class="btn bp" onclick="genHeatmap()">Generate</button>
+        </div>
+        <!-- Legend -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;background:#f8faff;padding:10px 14px;border-radius:8px;border:1px solid var(--border);">
+          <span style="font-size:11px;font-weight:700;color:var(--muted);">LEGEND</span>
+          <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:14px;border-radius:3px;background:#7c3aed;"></div><span style="font-size:11px;color:var(--t2);">&gt; Max Level</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:14px;border-radius:3px;background:#f97316;"></div><span style="font-size:11px;color:var(--t2);">66–99% of Max</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:14px;border-radius:3px;background:#eab308;"></div><span style="font-size:11px;color:var(--t2);">33–65% of Max</span></div>
+          <div style="display:flex;align-items:center;gap:5px;"><div style="width:14px;height:14px;border-radius:3px;background:#ef4444;"></div><span style="font-size:11px;color:var(--t2);">&lt; 33% of Max</span></div>
+        </div>
+        <div id="hm-content"></div>
+      </div>
+    </div>
+
+    <!-- OPENING STOCK -->
+    <div class="page" id="page-opening">
+      <div class="tb">
+        <div class="pt"><h1>Opening Stock</h1><p>Set opening stock — one time setup</p></div>
+        <div class="ta"><button class="btn bp" onclick="saveOpeningStock()">💾 Save Opening Stock</button></div>
+      </div>
+      <div style="background:var(--amber-l);border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amber);">
+        ⚠ This is a one-time setup. Enter existing stock quantities.
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Item Name</th><th>SKU Code</th><th>Unit</th><th>Opening Qty</th><th>Remarks</th></tr></thead>
+            <tbody id="opening-tb"><tr class="lrow"><td colspan="5"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- INDENT / PO -->
+    <div class="page" id="page-indent">
+      <div class="tb">
+        <div class="pt"><h1>Indent / PO</h1><p>Track purchase orders</p></div>
+        <div class="ta">
+          <select class="inp" id="indent-status-f" style="width:140px;" onchange="loadIndents()">
+            <option value="">All</option><option value="Pending">Pending</option>
+            <option value="Received">Received</option><option value="Cancelled">Cancelled</option>
+          </select>
+          <button class="btn bp" onclick="openIndentModal()">+ New Indent</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Indent ID</th><th>Date</th><th>Item</th><th>SKU</th><th>Qty</th><th>Supplier</th><th>Expected</th><th>Status</th><th>Remarks</th><th></th></tr></thead>
+            <tbody id="indent-tb"><tr class="lrow"><td colspan="10"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="indent-empty" class="empty" style="display:none"><div class="ei">📋</div><div class="et">No indents yet</div></div>
+      </div>
+    </div>
+
+    <!-- MATERIAL REQUESTS -->
+    <div class="page" id="page-requests">
+      <div class="tb">
+        <div class="pt"><h1>Material Requests</h1><p>Requests from production — review and issue material</p></div>
+        <div class="ta">
+          <select class="inp" id="req-status-f" style="width:140px;" onchange="loadRequests()">
+            <option value="Pending">Pending</option><option value="">All</option>
+            <option value="Closed">Closed</option><option value="Cancelled">Cancelled</option>
+          </select>
+          <button class="btn bg bsm" onclick="loadRequests()">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="tw"><table>
+            <thead><tr><th>Date</th><th>Time</th><th>Item</th><th>Qty</th><th>Unit</th><th>Department</th><th>Requested By</th><th>Remarks</th><th>Status</th><th></th></tr></thead>
+            <tbody id="req-tb"><tr class="lrow"><td colspan="10"><span class="loader"></span></td></tr></tbody>
+        </table></div>
+        <div id="req-empty" class="empty" style="display:none"><div class="ei">🔔</div><div class="et">Koi pending request nahi</div></div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<div id="toast"></div>
+
+<!-- INWARD MODAL -->
+<div class="ov" id="inward-modal">
+  <div class="modal">
+    <div class="mh"><h2>📥 New Inward Entry</h2><button class="mclose" onclick="closeM('inward-modal')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fi full"><label class="inp-label">Item *</label><select class="inp" id="in-item" onchange="updInwardInfo()"></select></div>
+        <div class="fi full" id="in-stock-info" style="display:none"><div class="stock-info">Stock: <strong id="in-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="in-rp">—</strong> &nbsp;|&nbsp; In Transit: <strong id="in-mit">—</strong></div></div>
+        <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="in-qty" type="number" min="1" placeholder="0"></div>
+        <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="in-date" type="date"></div>
+        <div class="fi"><label class="inp-label">Supplier</label><input class="inp" id="in-supplier" placeholder="Supplier name"></div>
+        <div class="fi"><label class="inp-label">Invoice / PO No.</label><input class="inp" id="in-invoice" placeholder="INV-001"></div>
+        <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="in-by" placeholder="Ajay"></div>
+        <div class="fi"><label class="inp-label">Remarks</label><input class="inp" id="in-remarks" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('inward-modal')">Cancel</button><button class="btn bgn" id="in-btn" onclick="saveInward()">Save Inward</button></div>
   </div>
 </div>
 
-<div class="success-card" id="success-card">
-  <div class="success-icon">✅</div>
-  <div class="success-title">Request Submitted!</div>
-  <div class="success-sub">Your request has been sent to the store manager.<br>Material will be issued shortly.</div>
-  <div class="success-id" id="success-summary"></div>
-  <button class="new-btn" onclick="resetForm()">+ Nayi Request Bhejein</button>
+<!-- OUTWARD MODAL -->
+<div class="ov" id="outward-modal">
+  <div class="modal">
+    <div class="mh"><h2>📤 New Outward Entry</h2><button class="mclose" onclick="closeM('outward-modal')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fi full"><label class="inp-label">Item *</label><select class="inp" id="out-item" onchange="updOutwardInfo()"></select></div>
+        <div class="fi full" id="out-stock-info" style="display:none"><div class="stock-info">Available: <strong id="out-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="out-rp">—</strong></div></div>
+        <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="out-qty" type="number" min="1" placeholder="0"></div>
+        <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="out-date" type="date"></div>
+        <div class="fi"><label class="inp-label">Department *</label>
+          <select class="inp" id="out-dept">
+            <option value="">Select Department</option>
+            <option>Volt Wing</option><option>Ampere Wing</option><option>Volt x Ampere Wing</option>
+            <option>Mega Grid</option><option>Cathodic Wing</option><option>Future Cell</option>
+            <option>Phoenix Wing</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fi"><label class="inp-label">Issued To</label><input class="inp" id="out-issuedto" placeholder="Person name"></div>
+        <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="out-by" placeholder="Ajay"></div>
+        <div class="fi"><label class="inp-label">Remarks</label><input class="inp" id="out-remarks" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('outward-modal')">Cancel</button><button class="btn brd" id="out-btn" onclick="saveOutward()">Save Outward</button></div>
+  </div>
 </div>
 
-<div class="footer">Litpax Technology Pvt. Ltd. &nbsp;·&nbsp; Designed by Darpan</div>
-<div class="overlay" id="overlay"><div class="spinner"></div></div>
+<!-- DISPATCH MODAL -->
+<div class="ov" id="dispatch-modal">
+  <div class="modal modal-lg">
+    <div class="mh"><h2>🚚 New Dispatch</h2><button class="mclose" onclick="closeM('dispatch-modal')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fi full"><label class="inp-label">BOM Model *</label><select class="inp" id="dis-bom" onchange="updDispatchPreview()"></select></div>
+        <div class="fi"><label class="inp-label">Qty to Produce *</label><input class="inp" id="dis-qty" type="number" min="1" placeholder="1" oninput="updDispatchPreview()"></div>
+        <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="dis-date" type="date"></div>
+        <div class="fi"><label class="inp-label">Dispatch To</label><input class="inp" id="dis-to" placeholder="Customer / Stock"></div>
+        <div class="fi"><label class="inp-label">Order Ref</label><input class="inp" id="dis-ref" placeholder="ORD-001"></div>
+        <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="dis-by" placeholder="Sandeep"></div>
+        <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="dis-remarks" placeholder="Optional"></div>
+      </div>
+      <div id="dis-preview"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('dispatch-modal')">Cancel</button><button class="btn bp" id="dis-btn" onclick="saveDispatch()">Confirm Dispatch</button></div>
+  </div>
+</div>
 
-<script>
-const API = 'https://script.google.com/macros/s/AKfycbxZINt8m6S0QR7fk_W69b9hzSSrPkOP8II4anw_dT_ch0QRLGnroLQT5mkSK4npmngT/exec';
+<!-- ITEM MODAL -->
+<div class="ov" id="item-modal">
+  <div class="modal modal-lg">
+    <div class="mh"><h2 id="im-title">Add Item</h2><button class="mclose" onclick="closeM('item-modal')">✕</button></div>
+    <div class="mb">
+      <div style="margin-bottom:16px;">
+        <label class="inp-label">Step 1 — Category *</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;" id="cat-grid">
+          <button type="button" class="cat-btn" onclick="selectCat('BMS')">⚡ BMS</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Cells')">🔋 Cells</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Charger')">🔌 Charger</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Wire')">🔩 Wire</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Nickel')">🪙 Nickel</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Consumable')">🧰 Consumable</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Packaging')">📦 Packaging</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Box')">📦 Box</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Other')">➕ Other</button>
+        </div>
+      </div>
+      <div id="brand-section" style="display:none;margin-bottom:16px;">
+        <label class="inp-label">Step 2 — Brand / Type *</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;" id="brand-grid"></div>
+        <input class="inp" id="f-brand-custom" placeholder="Or type custom..." style="margin-top:8px;display:none;" oninput="updItemName()">
+      </div>
+      <div id="model-section" style="display:none;margin-bottom:16px;">
+        <label class="inp-label">Step 3 — Model / Specification *</label>
+        <input class="inp" id="f-model" placeholder="e.g. 24S 40Amp, 100AH, 12.8V 5A..." oninput="updItemName()" style="margin-top:6px;">
+      </div>
+      <div id="name-preview" style="display:none;margin-bottom:16px;">
+        <div style="background:var(--accent-l);border:1px solid #c7d9ff;border-radius:8px;padding:10px 14px;">
+          <div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:4px;">Item Name (Auto)</div>
+          <div style="font-size:15px;font-weight:700;color:var(--navy);" id="f-name-preview">—</div>
+          <input type="hidden" id="f-name">
+          <input type="hidden" id="f-max-val" value="0">
+          <input type="hidden" id="f-rop-val" value="0">
+        </div>
+      </div>
+      <div id="item-details" style="display:none;">
+        <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+        <div class="fg">
+          <div class="fi"><label class="inp-label">Unit</label>
+            <select class="inp" id="f-unit" oninput="updROP()">
+              <option value="Pcs">Pcs</option><option value="Kg">Kg</option>
+              <option value="Metres">Metres</option><option value="Roll">Roll</option><option value="Set">Set</option>
+            </select>
+          </div>
+          <div class="fi"><label class="inp-label">ADC (Daily use)</label><input class="inp" id="f-adc" type="number" min="0" placeholder="0" oninput="updROP()"></div>
+          <div class="fi"><label class="inp-label">Lead Time (Days)</label><input class="inp" id="f-lt" type="number" min="0" placeholder="0" oninput="updROP()"></div>
+          <div class="fi"><label class="inp-label">Safety Factor</label><input class="inp" id="f-sf" type="number" min="1" step="0.1" placeholder="1.2" oninput="updROP()"></div>
+          <div class="fi full"><label class="inp-label">Material In Transit</label><input class="inp" id="f-mit" type="number" min="0" placeholder="0"></div>
+          <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="f-remarks" placeholder="Optional"></div>
+        </div>
+        <div class="rop-box" style="margin-top:14px;">
+          <div class="rl">Reorder Point = ADC × Lead Time × Safety Factor</div>
+          <div class="rv" id="rop-prev">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('item-modal')">Cancel</button><button class="btn bp" id="im-btn" onclick="saveItem()">Save Item</button></div>
+  </div>
+</div>
 
-function g(id) { return document.getElementById(id); }
-function v(id) { const el = g(id); return el ? (Number(el.value)||0) : 0; }
-function t(id) { const el = g(id); return el ? (el.value.trim()) : ''; }
+<!-- BOM ADD MODAL -->
+<div class="ov" id="bom-add-modal">
+  <div class="modal">
+    <div class="mh"><h2>+ New BOM Model</h2><button class="mclose" onclick="closeM('bom-add-modal')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fi full"><label class="inp-label">BOM Name *</label><input class="inp" id="bm-name" placeholder="e.g. 60V 30AH LFP Smart"></div>
+        <div class="fi"><label class="inp-label">Alias / Code</label><input class="inp" id="bm-alias" placeholder="6030LFP"></div>
+        <div class="fi"><label class="inp-label">Item To Produce</label><input class="inp" id="bm-produces" placeholder="LITPAX EV BATTERY 60V 30AH"></div>
+        <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="bm-remarks" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('bom-add-modal')">Cancel</button><button class="btn bp" id="bm-btn" onclick="saveBomModel()">Save</button></div>
+  </div>
+</div>
 
-async function submitForm() {
-  const name = t('f-name');
-  const dept = t('f-dept');
-  if (!name) { alert('Apna naam bharein'); return; }
-  if (!dept) { alert('Department select karein'); return; }
+<!-- BOM EDIT MODAL -->
+<div class="ov" id="bom-edit-modal">
+  <div class="modal modal-lg">
+    <div class="mh"><h2 id="bom-edit-title">Edit BOM</h2><button class="mclose" onclick="closeM('bom-edit-modal')">✕</button></div>
+    <div class="mb">
+      <div style="margin-bottom:12px;font-size:12px;color:var(--muted);">Enter component quantities (per 1 unit)</div>
+      <div id="bom-rows-wrap"></div>
+      <button class="btn bg bsm" style="margin-top:8px;" onclick="addBomRow()">+ Add Component</button>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('bom-edit-modal')">Cancel</button><button class="btn bp" id="bom-edit-btn" onclick="saveBomItems()">Save BOM</button></div>
+  </div>
+</div>
 
-  const items = [];
+<!-- INDENT MODAL -->
+<div class="ov" id="indent-modal">
+  <div class="modal">
+    <div class="mh"><h2>📋 New Indent / PO</h2><button class="mclose" onclick="closeM('indent-modal')">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fi full"><label class="inp-label">Item *</label><select class="inp" id="ind-item"></select></div>
+        <div class="fi"><label class="inp-label">Qty *</label><input class="inp" id="ind-qty" type="number" min="1" placeholder="0"></div>
+        <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="ind-date" type="date"></div>
+        <div class="fi"><label class="inp-label">Supplier</label><input class="inp" id="ind-supplier" placeholder="Supplier name"></div>
+        <div class="fi"><label class="inp-label">Expected Date</label><input class="inp" id="ind-exp" type="date"></div>
+        <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="ind-remarks" placeholder="Optional"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('indent-modal')">Cancel</button><button class="btn bp" id="ind-btn" onclick="saveIndent()">Save Indent</button></div>
+  </div>
+</div>
 
-  // Cells
-  [
-    {id:'cell-1', name:'Cell 3.6V 4.5AH'},
-    {id:'cell-2', name:'Cell 3.6V 5AH'},
-    {id:'cell-3', name:'Cell 3.2V 100AH'},
-    {id:'cell-4', name:'Cell 3.2V 150AH'},
-    {id:'cell-5', name:'Cell 3.2V 314AH'},
-  ].forEach(c => { const q = v(c.id); if (q > 0) items.push({itemName: c.name, qty: q, unit: 'Pcs'}); });
-  const coq = v('cell-other-qty'), con = t('cell-other-name');
-  if (coq > 0 && con) items.push({itemName: 'Cell - '+con, qty: coq, unit: 'Pcs'});
+<!-- RECEIVE INDENT MODAL -->
+<div class="ov" id="receive-modal">
+  <div class="modal">
+    <div class="mh"><h2>✅ Receive Material</h2><button class="mclose" onclick="closeM('receive-modal')">✕</button></div>
+    <div class="mb">
+      <div id="recv-info" style="background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:10px 14px;margin-bottom:14px;font-size:13px;"></div>
+      <div class="fg">
+        <div class="fi"><label class="inp-label">Received Qty *</label><input class="inp" id="recv-qty" type="number" min="1" placeholder="0"></div>
+        <div class="fi"><label class="inp-label">Received Date *</label><input class="inp" id="recv-date" type="date"></div>
+        <div class="fi full"><label class="inp-label">Invoice No.</label><input class="inp" id="recv-invoice" placeholder="INV-001"></div>
+        <div class="fi full"><label class="inp-label">Supplier / Party</label><input class="inp" id="recv-supplier" placeholder="Supplier name"></div>
+        <div class="fi full"><label class="inp-label">Recorded By</label><input class="inp" id="recv-by" placeholder="Ajay"></div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('receive-modal')">Cancel</button><button class="btn bgn" id="recv-btn" onclick="confirmReceive()">Receive & Add to Stock</button></div>
+  </div>
+</div>
 
-  // BMS
-  [
-    {id:'bms-1', name:'BMS 10S 20Amp'},
-    {id:'bms-2', name:'BMS 2-Wheeler'},
-    {id:'bms-3', name:'BMS 4S 100Amp'},
-    {id:'bms-4', name:'BMS 8S 100Amp'},
-    {id:'bms-5', name:'BMS 16S 100Amp'},
-  ].forEach(b => { const q = v(b.id); if (q > 0) items.push({itemName: b.name, qty: q, unit: 'Pcs'}); });
-  const boq = v('bms-other-qty'), bon = t('bms-other-name');
-  if (boq > 0 && bon) items.push({itemName: 'BMS - '+bon, qty: boq, unit: 'Pcs'});
+<!-- CREATE PO MODAL -->
+<div class="ov" id="create-po-modal">
+  <div class="modal modal-lg">
+    <div class="mh"><h2>📋 Create Purchase Order</h2><button class="mclose" onclick="closeM('create-po-modal')">✕</button></div>
+    <div class="mb">
+      <div style="background:#fff7ed;border:1px solid #fde68a;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12px;color:var(--amber);">
+        ⚠ Reorder / Critical items ki list hai — quantity edit karo phir Create PO karo
+      </div>
+      <!-- Common fields -->
+      <div class="fg" style="margin-bottom:14px;">
+        <div class="fi"><label class="inp-label">Supplier (Optional)</label><input class="inp" id="po-supplier" placeholder="Supplier name"></div>
+        <div class="fi"><label class="inp-label">Expected Date (Optional)</label><input class="inp" id="po-exp-date" type="date"></div>
+      </div>
+      <div id="po-items-list"></div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('create-po-modal')">Cancel</button>
+      <button class="btn bp" id="po-btn" onclick="saveCreatePO()">✓ Create PO</button>
+    </div>
+  </div>
+</div>
 
-  // Wire — Both replaced with Stud
-  const wireSizes = ['1mm','1.5mm','2.5mm','6mm','10mm','16mm','25mm'];
-  wireSizes.forEach((sz, i) => {
-    const n = i+1;
-    const r = v(`wire-${n}-r`), b = v(`wire-${n}-b`), s = v(`wire-${n}-s`);
-    if (r > 0) items.push({itemName: `Wire ${sz} Red`,  qty: r, unit: 'm'});
-    if (b > 0) items.push({itemName: `Wire ${sz} Black`, qty: b, unit: 'm'});
-    if (s > 0) items.push({itemName: `Wire ${sz} Stud`,  qty: s, unit: 'm'});
-  });
-
-  // Nickel
-  [
-    {id:'nkl-1', name:'Nickel 21700'},
-    {id:'nkl-2', name:'Nickel 18650'},
-    {id:'nkl-3', name:'Nickel 32140'},
-    {id:'nkl-4', name:'Nickel 33140'},
-    {id:'nkl-5', name:'Nickel Single Strip'},
-    {id:'nkl-6', name:'Nickel Zig Zag'},
-  ].forEach(n => { const q = v(n.id); if (q > 0) items.push({itemName: n.name, qty: q, unit: 'Kg'}); });
-
-  // Other
-  [
-    {id:'oth-1',  name:'Silicon Tube'},
-    {id:'oth-2',  name:'PG7'},
-    {id:'oth-3',  name:'PG9'},
-    {id:'oth-4',  name:'PG13.5'},
-    {id:'oth-5',  name:'Pressure Vent'},
-    {id:'oth-6',  name:'2 Wheeler Handle'},
-    {id:'oth-7',  name:'Thimble 2.5mm'},
-    {id:'oth-8',  name:'Thimble 25mm'},
-    {id:'oth-9',  name:'BusBar'},
-    {id:'oth-10', name:'Soldering Wire'},
-    {id:'oth-11', name:'Rivet'},
-    {id:'oth-12', name:'MCB'},
-    {id:'oth-13', name:'SB50 Connector'},
-    {id:'oth-14', name:'ESS Connector'},
-    {id:'oth-15', name:'Connector Red'},
-    {id:'oth-16', name:'Connector Black'},
-    {id:'oth-17', name:'Display'},
-    {id:'oth-18', name:'Loose Screws'},
-    {id:'oth-19', name:'Inverter Handle'},
-    {id:'oth-20', name:'Spiral Pipe'},
-    {id:'oth-21', name:'Glue Stick'},
-    {id:'oth-22', name:'Stud'},
-    {id:'oth-23', name:'Paper Cutter'},
-  ].forEach(o => { const q = v(o.id); if (q > 0) items.push({itemName: o.name, qty: q, unit: 'Pcs'}); });
-
-  if (!items.length) { alert('Kam se kam ek item ki qty bharein'); return; }
-
-  g('overlay').classList.add('show');
-  g('submit-btn').disabled = true;
-
-  try {
-    // Single bulk API call — sabhi items ek saath
-    const r = await fetch(API, {
-      method: 'POST', redirect: 'follow',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'addRequestBulk',
-        items,
-        department:  dept,
-        requestedBy: name,
-        remarks:     t('f-remarks'),
-      }),
-    });
-    const data = JSON.parse(await r.text());
-    if (data.error) throw new Error(data.error);
-
-    g('success-summary').innerHTML =
-      `<b>${data.count} items</b> request bheji gayi<br>` +
-      items.map(i => `• ${i.itemName}: <b>${i.qty} ${i.unit}</b>`).join('<br>');
-    g('form-card').style.display = 'none';
-    g('success-card').style.display = 'block';
-    window.scrollTo(0, 0);
-  } catch(e) {
-    alert('Error: ' + e.message);
-    g('submit-btn').disabled = false;
-  } finally {
-    g('overlay').classList.remove('show');
-  }
-}
-
-function resetForm() {
-  document.querySelectorAll('.qty-inp').forEach(el => el.value = '');
-  document.querySelectorAll('.other-inp').forEach(el => el.value = '');
-  g('f-name').value = ''; g('f-dept').value = ''; g('f-remarks').value = '';
-  g('submit-btn').disabled = false;
-  g('form-card').style.display = 'block';
-  g('success-card').style.display = 'none';
-  window.scrollTo(0, 0);
-}
-</script>
+<script src="app.js?v=50"></script>
 </body>
 </html>
