@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbxjcFAtJ0J5R7Ia5DGiaX5BwA4BAaTKdA6Dvr-AMll5rWFXbEbl_px-FD2ffnke39y9/exec';
+const API = 'https://script.google.com/macros/s/AKfycbw7GFHNROxmH0QNwrRvEb5Yzb3Pr1J6TU2dHRSmrlgT_DokfUcurFLK8cKmHd3DCHfT/exec';
 
 function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function showEl(id, show) { const el = document.getElementById(id); if (el) el.style.display = show ? 'inline' : 'none'; }
@@ -1272,14 +1272,93 @@ async function saveSnapshot() {
 }
 
 // ── MONTHLY STOCK HEATMAP ──
-async function loadHeatmapItems() {
-  const sel = document.getElementById('hm-item');
-  if (!sel) return;
+async function loadHeatmapItems() { /* not needed anymore */ }
+
+async function genHeatmap() {
+  const month = document.getElementById('hm-month').value;
+  const wrap  = document.getElementById('hm-content');
+
+  if (!month) { toast('Month select karo', 'err'); return; }
+
+  wrap.innerHTML = `<div class="empty"><div class="ei">⏳</div><div class="et">Calculating all items...</div></div>`;
+
   try {
+    // Get all items
     if (!_stocks.length) _stocks = await api('getStockSummary');
-    sel.innerHTML = '<option value="">-- Select Item --</option>' +
-      _stocks.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-  } catch(e) {}
+
+    // Get monthly data for all items in one call
+    const data = await api('getMonthlyStockAll', { month });
+    // data = { days: ['2026-06-01',...], items: [{name, unit, maxL, closings: [n,n,...]}] }
+
+    const days   = data.days;   // array of date strings
+    const items  = data.items;  // array of items with closings array
+
+    if (!days.length || !items.length) {
+      wrap.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">No data</div></div>`;
+      return;
+    }
+
+    const monthName = new Date(month + '-01').toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+
+    // Color function
+    function getColor(stock, maxL) {
+      if (maxL <= 0) return { bg: '#e5e7eb', text: '#6b7280' };
+      const pct = stock / maxL * 100;
+      if (stock > maxL) return { bg: '#7c3aed', text: '#fff' };
+      if (pct >= 66)    return { bg: '#f97316', text: '#fff' };
+      if (pct >= 33)    return { bg: '#eab308', text: '#1a1a1a' };
+      return              { bg: '#ef4444', text: '#fff' };
+    }
+
+    // Date labels — show day number only
+    const dateLabels = days.map(d => {
+      const dt = new Date(d + 'T00:00:00');
+      return { date: d, day: dt.getDate(), dow: dt.toLocaleDateString('en-IN', { weekday: 'short' }) };
+    });
+
+    let html = `
+      <div class="card">
+        <div class="ch" style="background:linear-gradient(90deg,#f8faff,#f0f4ff);">
+          <h2>📅 ${monthName} — All Items Stock Heatmap</h2>
+          <span style="font-size:11px;color:var(--muted);">${items.length} items · ${days.length} days</span>
+        </div>
+        <div style="padding:16px 18px;overflow-x:auto;">
+          <table style="border-collapse:collapse;font-size:11px;width:100%;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:6px 10px;background:var(--s2);border:1px solid var(--border);min-width:160px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;position:sticky;left:0;z-index:2;">Item</th>
+                <th style="padding:6px 8px;background:var(--s2);border:1px solid var(--border);min-width:60px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;text-align:center;">Max</th>
+                ${dateLabels.map(dl => `
+                  <th style="padding:4px 2px;background:var(--s2);border:1px solid var(--border);min-width:38px;text-align:center;">
+                    <div style="font-size:9px;color:var(--muted);">${dl.dow}</div>
+                    <div style="font-size:11px;font-weight:700;color:var(--navy);">${dl.day}</div>
+                  </th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(item => `
+                <tr>
+                  <td style="padding:5px 10px;border:1px solid var(--border);font-weight:600;color:var(--navy);font-size:12px;white-space:nowrap;background:#fff;position:sticky;left:0;z-index:1;">${item.name}</td>
+                  <td style="padding:5px 8px;border:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);background:#fffbf5;">${item.maxL || '—'}</td>
+                  ${item.closings.map(stock => {
+                    const c = getColor(stock, item.maxL);
+                    return `<td style="padding:0;border:1px solid rgba(0,0,0,.06);">
+                      <div style="background:${c.bg};color:${c.text};font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;padding:6px 2px;min-height:32px;display:flex;align-items:center;justify-content:center;" title="${item.name}: ${stock} ${item.unit}">
+                        ${stock}
+                      </div>
+                    </td>`;
+                  }).join('')}
+                </tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    wrap.innerHTML = html;
+  } catch(e) {
+    toast(e.message, 'err');
+    wrap.innerHTML = `<div class="empty"><div class="ei">❌</div><div class="et">${e.message}</div></div>`;
+  }
 }
 
 async function genHeatmap() {
