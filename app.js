@@ -583,19 +583,20 @@ function filterItems() {
 
 // ── CATEGORY / BRAND CONFIG ──
 const CAT_BRANDS = {
-  'BMS':        ['JK', 'JBD', 'Daly', 'AIS', 'Pace', 'Other'],
+  'BMS':        ['JK', 'JBD', 'Daly', 'Solar', 'Other'],
   'Cells':      ['DMEGC', 'EVE', 'BAK', 'LG', 'HLY', 'CATL', 'Other'],
-  'Charger':    ['Generic', 'Litpax', 'AXIOM', 'SHAKTI', 'XSTRONG POWER', 'Other'],
+  'Charger':    ['Charge Q', 'Litpax', 'AXIOM', 'SHAKTI', 'XSTRONG POWER', 'Other'],
   'Wire':       ['Copper', 'Silicon', 'Other'],
   'Nickel':     ['Pure', 'Coated', 'Other'],
   'Consumable': ['—'],
   'Packaging':  ['—'],
+  'Box':        ['Prismatic', 'Cylindrical', 'Other'],
   'Other':      ['—'],
 };
 const CAT_UNITS = {
   'BMS': 'Pcs', 'Cells': 'Pcs', 'Charger': 'Pcs',
   'Wire': 'Metres', 'Nickel': 'Kg',
-  'Consumable': 'Pcs', 'Packaging': 'Pcs', 'Other': 'Pcs',
+  'Box': 'Pcs', 'Consumable': 'Pcs', 'Packaging': 'Pcs', 'Other': 'Pcs',
 };
 
 let _selCat = '', _selBrand = '';
@@ -1021,7 +1022,7 @@ function toggleTree(id) {
 }
 
 function getCatIcon(cat) {
-  const icons = { 'BMS':'⚡', 'Cells':'🔋', 'Charger':'🔌', 'Wire':'🔩', 'Nickel':'🪙', 'Consumable':'🧰', 'Packaging':'📦', 'Other':'➕' };
+  const icons = { 'BMS':'⚡', 'Cells':'🔋', 'Charger':'🔌', 'Wire':'🔩', 'Nickel':'🪙', 'Consumable':'🧰', 'Box':'📦', 'Packaging':'📦', 'Other':'➕' };
   return icons[cat] || '📦';
 }
 
