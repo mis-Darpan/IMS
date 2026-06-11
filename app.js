@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbw7GFHNROxmH0QNwrRvEb5Yzb3Pr1J6TU2dHRSmrlgT_DokfUcurFLK8cKmHd3DCHfT/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxU0JGhae2OKew5I-gHzH6dNcMbnTbD5k62rIyfaWet43xOp-k11uyynUDopEIFOv6j/exec';
 
 function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function showEl(id, show) { const el = document.getElementById(id); if (el) el.style.display = show ? 'inline' : 'none'; }
@@ -1302,6 +1302,8 @@ async function genHeatmap() {
 
     // Color function
     function getColor(stock, maxL) {
+      if (stock === null || stock === undefined) return { bg: '#f3f4f6', text: '#d1d5db' };
+      if (stock === 0) return { bg: '#f3f4f6', text: '#9ca3af' };
       if (maxL <= 0) return { bg: '#e5e7eb', text: '#6b7280' };
       const pct = stock / maxL * 100;
       if (stock > maxL) return { bg: '#7c3aed', text: '#fff' };
@@ -1342,9 +1344,10 @@ async function genHeatmap() {
                   <td style="padding:5px 8px;border:1px solid var(--border);text-align:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--orange);background:#fffbf5;">${item.maxL || '—'}</td>
                   ${item.closings.map(stock => {
                     const c = getColor(stock, item.maxL);
+                    const label = stock === null || stock === undefined ? '—' : stock;
                     return `<td style="padding:0;border:1px solid rgba(0,0,0,.06);">
-                      <div style="background:${c.bg};color:${c.text};font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;padding:6px 2px;min-height:32px;display:flex;align-items:center;justify-content:center;" title="${item.name}: ${stock} ${item.unit}">
-                        ${stock}
+                      <div style="background:${c.bg};color:${c.text};font-family:var(--mono);font-size:11px;font-weight:700;text-align:center;padding:6px 2px;min-height:32px;display:flex;align-items:center;justify-content:center;" title="${item.name}: ${label} ${item.unit}">
+                        ${label}
                       </div>
                     </td>`;
                   }).join('')}
