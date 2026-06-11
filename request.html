@@ -233,14 +233,13 @@ async function submitForm() {
   const boq = v('bms-other-qty'), bon = t('bms-other-name');
   if (boq > 0 && bon) items.push({itemName: 'BMS - '+bon, qty: boq, unit: 'Pcs'});
 
-  // Wire — Both replaced with Stud
+  // Wire — Red & Black only
   const wireSizes = ['1mm','1.5mm','2.5mm','6mm','10mm','16mm','25mm'];
   wireSizes.forEach((sz, i) => {
     const n = i+1;
-    const r = v(`wire-${n}-r`), b = v(`wire-${n}-b`), s = v(`wire-${n}-s`);
+    const r = v(`wire-${n}-r`), b = v(`wire-${n}-b`);
     if (r > 0) items.push({itemName: `Wire ${sz} Red`,  qty: r, unit: 'm'});
     if (b > 0) items.push({itemName: `Wire ${sz} Black`, qty: b, unit: 'm'});
-    if (s > 0) items.push({itemName: `Wire ${sz} Stud`,  qty: s, unit: 'm'});
   });
 
   // Nickel
