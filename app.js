@@ -627,7 +627,7 @@ const CAT_BRANDS = {
   'Charger':    ['Charge Q', 'Litpax', 'AXIOM', 'SHAKTI', 'XSTRONG POWER', 'Other'],
   'Wire':       ['Copper', 'Silicon', 'Other'],
   'Nickel':     ['Pure', 'Coated', 'Other'],
-  'Consumable': ['—'],
+  'Busbar':     ['1.5*80mm', 'Other'],
   'Packaging':  ['—'],
   'Box':        ['Prismatic', 'Cylindrical', 'Other'],
   'Other':      ['—'],
@@ -635,7 +635,7 @@ const CAT_BRANDS = {
 const CAT_UNITS = {
   'BMS': 'Pcs', 'Cells': 'Pcs', 'Charger': 'Pcs',
   'Wire': 'Metres', 'Nickel': 'Kg',
-  'Box': 'Pcs', 'Consumable': 'Pcs', 'Packaging': 'Pcs', 'Other': 'Pcs',
+  'Box': 'Pcs', 'Busbar': 'Pcs', 'Packaging': 'Pcs', 'Other': 'Pcs',
 };
 
 let _selCat = '', _selBrand = '';
@@ -688,7 +688,7 @@ function updItemName() {
     : _selBrand;
   const model = (document.getElementById('f-model').value || '').trim();
   let name = '';
-  if (['Consumable','Packaging','Other'].includes(_selCat)) {
+  if (['Packaging','Other'].includes(_selCat)) {
     name = model || _selCat;
   } else {
     name = [_selCat, brand, model].filter(Boolean).join(' ');
@@ -1061,7 +1061,7 @@ function toggleTree(id) {
 }
 
 function getCatIcon(cat) {
-  const icons = { 'BMS':'⚡', 'Cells':'🔋', 'Charger':'🔌', 'Wire':'🔩', 'Nickel':'🪙', 'Consumable':'🧰', 'Box':'📦', 'Packaging':'📦', 'Other':'➕' };
+  const icons = { 'BMS':'⚡', 'Cells':'🔋', 'Charger':'🔌', 'Wire':'🔩', 'Nickel':'🪙', 'Busbar':'⚡', 'Box':'📦', 'Packaging':'📦', 'Other':'➕' };
   return icons[cat] || '📦';
 }
 
