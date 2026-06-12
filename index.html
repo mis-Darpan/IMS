@@ -453,6 +453,17 @@
       <div style="background:var(--amber-l);border:1px solid #fde68a;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--amber);">
         ⚠ This is a one-time setup. Enter existing stock quantities.
       </div>
+      <!-- Category Filter -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+        <label style="font-size:12px;font-weight:600;color:var(--muted);">Category:</label>
+        <select class="inp" id="opening-cat-f" style="width:180px;" onchange="filterOpeningStock()">
+          <option value="">All Categories</option>
+          <option>BMS</option><option>Cells</option><option>Charger</option>
+          <option>Wire</option><option>Nickel</option><option>Box</option>
+          <option>Busbar</option><option>Packaging</option><option>Other</option>
+        </select>
+        <span id="opening-count" style="font-size:12px;color:var(--muted);"></span>
+      </div>
       <div class="card">
         <div class="tw"><table>
             <thead><tr><th>Item Name</th><th>SKU Code</th><th>Unit</th><th>Opening Qty</th><th>Remarks</th></tr></thead>
