@@ -688,7 +688,7 @@ function updItemName() {
     : _selBrand;
   const model = (document.getElementById('f-model').value || '').trim();
   let name = '';
-  if (['Packaging','Other'].includes(_selCat)) {
+  if (['Busbar','Packaging','Other'].includes(_selCat)) {
     name = model || _selCat;
   } else {
     name = [_selCat, brand, model].filter(Boolean).join(' ');
@@ -961,6 +961,9 @@ function toggleStockView() {
 }
 
 function parseBrand(item) {
+  // Categories without brands — use item name directly
+  if (['Other', 'Busbar', 'Packaging'].includes(item.cat)) return item.name;
+  // For branded categories — second word is brand
   const parts = item.name.split(' ');
   if (parts.length >= 2) return parts[1];
   return item.cat || 'Other';
@@ -975,7 +978,9 @@ function renderStockTree(stocks) {
   const tree = {};
   stocks.forEach(s => {
     const cat   = s.cat || 'Other';
-    const brand = parseBrand(s);
+    // No brand grouping for these categories
+    const noBrandCats = ['Other', 'Busbar', 'Packaging'];
+    const brand = noBrandCats.includes(cat) ? '__direct__' : parseBrand(s);
     if (!tree[cat]) tree[cat] = {};
     if (!tree[cat][brand]) tree[cat][brand] = [];
     tree[cat][brand].push(s);
@@ -1004,6 +1009,39 @@ function renderStockTree(stocks) {
       const models = brands[brand];
       const brandTotal  = models.reduce((s,i) => s + i.currentStock, 0);
       const brandAlerts = models.filter(i => i.status !== 'OK').length;
+
+      // No brand grouping — show items directly
+      if (brand === '__direct__') {
+        html += `<div class="tree-brand">
+          <div class="tree-model-headers">
+            <span>Item</span><span>Unit</span><span>ROP</span><span>Max</span><span>MIT</span><span>Store Stock</span><span>WIP</span><span>Status</span>
+          </div>
+          <div class="tree-models">
+            ${models.map(m => {
+              const pct = m.maxL > 0 ? Math.min(100, Math.round(m.currentStock/m.maxL*100)) : 0;
+              const bc = m.status==='OK' ? 'var(--green)' : m.status==='Reorder' ? 'var(--orange)' : 'var(--red)';
+              return `<div class="tree-model-row">
+                <span class="tree-model-name">${m.name}</span>
+                <span style="color:var(--muted);">${m.unit||'—'}</span>
+                <span style="font-family:var(--mono);color:var(--orange);">${m.reorderPoint}</span>
+                <span style="font-family:var(--mono);color:var(--navy);">${m.maxL||0}</span>
+                <span style="font-family:var(--mono);color:var(--purple);">${m.mit||0}</span>
+                <span>
+                  <span style="font-family:var(--mono);font-weight:700;font-size:14px;">${m.currentStock}</span>
+                  <div style="height:3px;background:var(--border);border-radius:2px;margin-top:3px;width:60px;">
+                    <div style="height:100%;width:${pct}%;background:${bc};border-radius:2px;"></div>
+                  </div>
+                </span>
+                <span style="font-family:var(--mono);font-weight:700;font-size:14px;color:${m.wip>0?'var(--purple)':'var(--light)'};">
+                  ${m.wip > 0 ? m.wip : '—'}
+                </span>
+                <span>${stBadge(m.status)}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+        return;
+      }
       html += `<div class="tree-brand">
         <div class="tree-brand-header" onclick="toggleTree('brand-${cat}-${brand}')">
           <div class="tree-brand-title">
@@ -1464,7 +1502,9 @@ function filterOpeningStock() {
   const countEl = document.getElementById('opening-count');
   if (countEl) countEl.textContent = filtered.length ? `${filtered.length} items` : '';
 
+  const safeId = (name) => name.replace(/[^a-zA-Z0-9]/g, '_');
   const tb = document.getElementById('opening-tb');
+
   if (!filtered.length) {
     tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted);">No items in this category</td></tr>';
     return;
@@ -1472,12 +1512,13 @@ function filterOpeningStock() {
 
   tb.innerHTML = filtered.map(item => {
     const existing = openMap[item.name] || {};
+    const sid = safeId(item.name);
     return `<tr>
       <td style="font-weight:600;color:var(--navy);">${item.name} <span style="font-size:10px;color:var(--muted);">${item.unit||''}</span></td>
-      <td><input class="inp" id="sku-${item.name.replace(/\s/g,'_')}" value="${existing.sku||''}" placeholder="SKU001" style="width:100px;"></td>
+      <td><input class="inp" id="sku-${sid}" value="${existing.sku||''}" placeholder="SKU001" style="width:100px;"></td>
       <td style="color:var(--muted);font-size:12px;">${item.unit||'—'}</td>
-      <td><input class="inp" id="op-${item.name.replace(/\s/g,'_')}" type="number" min="0" value="${existing.qty||0}" style="width:110px;font-family:var(--mono);font-weight:600;"></td>
-      <td><input class="inp" id="rem-${item.name.replace(/\s/g,'_')}" value="${existing.remarks||''}" placeholder="Optional" style="width:150px;"></td>
+      <td><input class="inp" id="op-${sid}" type="number" min="0" value="${existing.qty||0}" style="width:110px;font-family:var(--mono);font-weight:600;"></td>
+      <td><input class="inp" id="rem-${sid}" value="${existing.remarks||''}" placeholder="Optional" style="width:150px;"></td>
     </tr>`;
   }).join('');
 }
