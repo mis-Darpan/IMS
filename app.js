@@ -1451,21 +1451,35 @@ async function loadOpeningStock() {
       _stocks = d.stocks || []; _items = _stocks;
     }
     _openingData = await api('getOpeningStock');
-    const openMap = {};
-    _openingData.forEach(o => { openMap[o.name] = o; });
-    const tb = document.getElementById('opening-tb');
-    if (!_items.length) { tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted);">Add items first</td></tr>'; return; }
-    tb.innerHTML = _items.map(item => {
-      const existing = openMap[item.name] || {};
-      return `<tr>
-        <td style="font-weight:600;color:var(--navy);">${item.name} <span style="font-size:10px;color:var(--muted);">${item.unit||''}</span></td>
-        <td><input class="inp" id="sku-${item.name.replace(/\s/g,'_')}" value="${existing.sku||''}" placeholder="SKU001" style="width:100px;"></td>
-        <td style="color:var(--muted);font-size:12px;">${item.unit||'—'}</td>
-        <td><input class="inp" id="op-${item.name.replace(/\s/g,'_')}" type="number" min="0" value="${existing.qty||0}" style="width:110px;font-family:var(--mono);font-weight:600;"></td>
-        <td><input class="inp" id="rem-${item.name.replace(/\s/g,'_')}" value="${existing.remarks||''}" placeholder="Optional" style="width:150px;"></td>
-      </tr>`;
-    }).join('');
+    filterOpeningStock();
   } catch(e) { toast(e.message, 'err'); }
+}
+
+function filterOpeningStock() {
+  const cat = (document.getElementById('opening-cat-f') || {}).value || '';
+  const openMap = {};
+  _openingData.forEach(o => { openMap[o.name] = o; });
+
+  const filtered = cat ? _items.filter(i => i.cat === cat) : _items;
+  const countEl = document.getElementById('opening-count');
+  if (countEl) countEl.textContent = filtered.length ? `${filtered.length} items` : '';
+
+  const tb = document.getElementById('opening-tb');
+  if (!filtered.length) {
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--muted);">No items in this category</td></tr>';
+    return;
+  }
+
+  tb.innerHTML = filtered.map(item => {
+    const existing = openMap[item.name] || {};
+    return `<tr>
+      <td style="font-weight:600;color:var(--navy);">${item.name} <span style="font-size:10px;color:var(--muted);">${item.unit||''}</span></td>
+      <td><input class="inp" id="sku-${item.name.replace(/\s/g,'_')}" value="${existing.sku||''}" placeholder="SKU001" style="width:100px;"></td>
+      <td style="color:var(--muted);font-size:12px;">${item.unit||'—'}</td>
+      <td><input class="inp" id="op-${item.name.replace(/\s/g,'_')}" type="number" min="0" value="${existing.qty||0}" style="width:110px;font-family:var(--mono);font-weight:600;"></td>
+      <td><input class="inp" id="rem-${item.name.replace(/\s/g,'_')}" value="${existing.remarks||''}" placeholder="Optional" style="width:150px;"></td>
+    </tr>`;
+  }).join('');
 }
 
 async function saveOpeningStock() {
