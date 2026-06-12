@@ -273,7 +273,12 @@ function renderInward(rows) {
 }
 
 function openInwardModal() {
-  populateItemSelect('in-item');
+  // Ensure stocks loaded for category filter
+  if (!_stocks.length && !_items.length) {
+    api('getStockSummary').then(d => { _stocks = d; _items = d; }).catch(() => {});
+  }
+  document.getElementById('in-cat').value = '';
+  document.getElementById('in-item').innerHTML = '<option value="">-- Select Category first --</option>';
   document.getElementById('in-qty').value = '';
   document.getElementById('in-date').value = today();
   document.getElementById('in-supplier').value = '';
@@ -282,6 +287,24 @@ function openInwardModal() {
   document.getElementById('in-remarks').value = '';
   document.getElementById('in-stock-info').style.display = 'none';
   document.getElementById('inward-modal').classList.add('open');
+}
+
+function filterInwardItems() {
+  const cat = document.getElementById('in-cat').value;
+  const sel = document.getElementById('in-item');
+  sel.innerHTML = '<option value="">-- Select Item --</option>';
+  document.getElementById('in-stock-info').style.display = 'none';
+  if (!cat) return;
+  const filtered = _items.filter(i => i.cat === cat);
+  if (!filtered.length && _stocks.length) {
+    _stocks.filter(s => s.cat === cat).forEach(s => {
+      sel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+    });
+  } else {
+    filtered.forEach(i => {
+      sel.innerHTML += `<option value="${i.name}">${i.name}</option>`;
+    });
+  }
 }
 
 async function updInwardInfo() {
@@ -358,7 +381,11 @@ function clearOutFilters() {
 }
 
 function openOutwardModal() {
-  populateItemSelect('out-item');
+  if (!_stocks.length && !_items.length) {
+    api('getStockSummary').then(d => { _stocks = d; _items = d; }).catch(() => {});
+  }
+  document.getElementById('out-cat').value = '';
+  document.getElementById('out-item').innerHTML = '<option value="">-- Select Category first --</option>';
   document.getElementById('out-qty').value = '';
   document.getElementById('out-date').value = today();
   document.getElementById('out-dept').value = '';
@@ -367,6 +394,18 @@ function openOutwardModal() {
   document.getElementById('out-remarks').value = '';
   document.getElementById('out-stock-info').style.display = 'none';
   document.getElementById('outward-modal').classList.add('open');
+}
+
+function filterOutwardItems() {
+  const cat = document.getElementById('out-cat').value;
+  const sel = document.getElementById('out-item');
+  sel.innerHTML = '<option value="">-- Select Item --</option>';
+  document.getElementById('out-stock-info').style.display = 'none';
+  if (!cat) return;
+  const src = _stocks.length ? _stocks : _items;
+  src.filter(s => s.cat === cat).forEach(s => {
+    sel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+  });
 }
 
 async function updOutwardInfo() {
@@ -1625,6 +1664,14 @@ function renderRequests() {
 function fulfillRequest(reqId, itemName, qty, department) {
   populateItemSelect('out-item');
   setTimeout(() => {
+    // Find item category
+    const item = _stocks.find(s => s.name === itemName) || _items.find(i => i.name === itemName);
+    const cat = item ? item.cat : '';
+    const catSel = document.getElementById('out-cat');
+    if (catSel && cat) {
+      catSel.value = cat;
+      filterOutwardItems();
+    }
     document.getElementById('out-item').value = itemName;
     document.getElementById('out-qty').value = qty;
     document.getElementById('out-date').value = today();
