@@ -434,9 +434,9 @@
             <label style="font-size:12px;color:var(--muted);font-weight:600;">Category</label>
             <select class="inp" id="hm-cat" style="width:160px;">
               <option value="">All Categories</option>
-              <option>BMS</option><option>Cells</option><option>Charger</option>
-              <option>Wire</option><option>Nickel</option><option>Box</option>
-              <option>Busbar</option><option>Packaging</option><option>Other</option>
+              <option>Cells</option><option>BMS</option><option>Charger</option>
+              <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
+              <option>Consumables</option><option>Tools</option><option>Packaging</option>
             </select>
           </div>
           <button class="btn bp" onclick="genHeatmap()">Generate</button>
@@ -467,9 +467,9 @@
         <label style="font-size:12px;font-weight:600;color:var(--muted);">Category:</label>
         <select class="inp" id="opening-cat-f" style="width:180px;" onchange="filterOpeningStock()">
           <option value="">All Categories</option>
-          <option>BMS</option><option>Cells</option><option>Charger</option>
-          <option>Wire</option><option>Nickel</option><option>Box</option>
-          <option>Busbar</option><option>Packaging</option><option>Other</option>
+          <option>Cells</option><option>BMS</option><option>Charger</option>
+          <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
+          <option>Consumables</option><option>Tools</option><option>Packaging</option>
         </select>
         <span id="opening-count" style="font-size:12px;color:var(--muted);"></span>
       </div>
@@ -538,9 +538,9 @@
           <label class="inp-label">Category *</label>
           <select class="inp" id="in-cat" onchange="filterInwardItems()">
             <option value="">-- Select Category --</option>
-            <option>BMS</option><option>Cells</option><option>Charger</option>
-            <option>Wire</option><option>Nickel</option><option>Box</option>
-            <option>Busbar</option><option>Packaging</option><option>Other</option>
+            <option>Cells</option><option>BMS</option><option>Charger</option>
+            <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
+            <option>Consumables</option><option>Tools</option><option>Packaging</option>
           </select>
         </div>
         <div class="fi full">
@@ -572,9 +572,9 @@
           <label class="inp-label">Category *</label>
           <select class="inp" id="out-cat" onchange="filterOutwardItems()">
             <option value="">-- Select Category --</option>
-            <option>BMS</option><option>Cells</option><option>Charger</option>
-            <option>Wire</option><option>Nickel</option><option>Box</option>
-            <option>Busbar</option><option>Packaging</option><option>Other</option>
+            <option>Cells</option><option>BMS</option><option>Charger</option>
+            <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
+            <option>Consumables</option><option>Tools</option><option>Packaging</option>
           </select>
         </div>
         <div class="fi full">
@@ -631,15 +631,15 @@
       <div style="margin-bottom:16px;">
         <label class="inp-label">Step 1 — Category *</label>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px;" id="cat-grid">
-          <button type="button" class="cat-btn" onclick="selectCat('BMS')">⚡ BMS</button>
           <button type="button" class="cat-btn" onclick="selectCat('Cells')">🔋 Cells</button>
+          <button type="button" class="cat-btn" onclick="selectCat('BMS')">⚡ BMS</button>
           <button type="button" class="cat-btn" onclick="selectCat('Charger')">🔌 Charger</button>
-          <button type="button" class="cat-btn" onclick="selectCat('Wire')">🔩 Wire</button>
-          <button type="button" class="cat-btn" onclick="selectCat('Nickel')">🪙 Nickel</button>
-          <button type="button" class="cat-btn" onclick="selectCat('Busbar')">⚡ Busbar</button>
-          <button type="button" class="cat-btn" onclick="selectCat('Packaging')">📦 Packaging</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Nickel/Busbar')">🪙 Nickel/Busbar</button>
           <button type="button" class="cat-btn" onclick="selectCat('Box')">📦 Box</button>
-          <button type="button" class="cat-btn" onclick="selectCat('Other')">➕ Other</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Wire')">🔩 Wire</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Consumables')">🧰 Consumables</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Tools')">🔧 Tools</button>
+          <button type="button" class="cat-btn" onclick="selectCat('Packaging')">📦 Packaging</button>
         </div>
       </div>
       <div id="brand-section" style="display:none;margin-bottom:16px;">
