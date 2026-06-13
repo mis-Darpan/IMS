@@ -613,18 +613,77 @@
   <div class="modal modal-lg">
     <div class="mh"><h2>🚚 New Dispatch</h2><button class="mclose" onclick="closeM('dispatch-modal')">✕</button></div>
     <div class="mb">
-      <div class="fg">
-        <div class="fi full"><label class="inp-label">BOM Model *</label><select class="inp" id="dis-bom" onchange="updDispatchPreview()"></select></div>
-        <div class="fi"><label class="inp-label">Qty to Produce *</label><input class="inp" id="dis-qty" type="number" min="1" placeholder="1" oninput="updDispatchPreview()"></div>
-        <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="dis-date" type="date"></div>
-        <div class="fi"><label class="inp-label">Dispatch To</label><input class="inp" id="dis-to" placeholder="Customer / Stock"></div>
-        <div class="fi"><label class="inp-label">Order Ref</label><input class="inp" id="dis-ref" placeholder="ORD-001"></div>
-        <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="dis-by" placeholder="Sandeep"></div>
-        <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="dis-remarks" placeholder="Optional"></div>
+
+      <!-- STEP 1: Choose type -->
+      <div id="dis-type-step">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;">What are you dispatching?</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <button onclick="selectDispatchType('battery')" style="padding:20px;border:2px solid var(--border);border-radius:12px;background:#f8faff;cursor:pointer;transition:all .15s;text-align:center;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:28px;margin-bottom:8px;">🔋</div>
+            <div style="font-size:14px;font-weight:700;color:var(--navy);">Battery</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">BOM based dispatch</div>
+          </button>
+          <button onclick="selectDispatchType('charger')" style="padding:20px;border:2px solid var(--border);border-radius:12px;background:#f8faff;cursor:pointer;transition:all .15s;text-align:center;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            <div style="font-size:28px;margin-bottom:8px;">🔌</div>
+            <div style="font-size:14px;font-weight:700;color:var(--navy);">Charger</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px;">Direct WIP dispatch</div>
+          </button>
+        </div>
       </div>
-      <div id="dis-preview"></div>
+
+      <!-- STEP 2A: Battery (BOM) -->
+      <div id="dis-battery-step" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <button onclick="resetDispatchType()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;">← Back</button>
+          <span style="font-size:13px;font-weight:700;color:var(--navy);">🔋 Battery Dispatch</span>
+        </div>
+        <div class="fg">
+          <div class="fi full"><label class="inp-label">BOM Model *</label><select class="inp" id="dis-bom" onchange="updDispatchPreview()"></select></div>
+          <div class="fi"><label class="inp-label">Qty to Produce *</label><input class="inp" id="dis-qty" type="number" min="1" placeholder="1" oninput="updDispatchPreview()"></div>
+          <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="dis-date" type="date"></div>
+          <div class="fi"><label class="inp-label">Dispatch To</label><input class="inp" id="dis-to" placeholder="Customer / Stock"></div>
+          <div class="fi"><label class="inp-label">Order Ref</label><input class="inp" id="dis-ref" placeholder="ORD-001"></div>
+          <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="dis-by" placeholder="Sandeep"></div>
+          <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="dis-remarks" placeholder="Optional"></div>
+        </div>
+        <div id="dis-preview"></div>
+      </div>
+
+      <!-- STEP 2B: Charger (Direct) -->
+      <div id="dis-charger-step" style="display:none;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <button onclick="resetDispatchType()" style="background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;">← Back</button>
+          <span style="font-size:13px;font-weight:700;color:var(--navy);">🔌 Charger Dispatch</span>
+        </div>
+        <div class="fg">
+          <div class="fi full">
+            <label class="inp-label">Charger Item * <span style="font-size:10px;color:var(--muted);">(sirf WIP mein available items)</span></label>
+            <select class="inp" id="dd-item" onchange="updDirectDispatchInfo()">
+              <option value="">-- Select Charger --</option>
+            </select>
+          </div>
+          <div class="fi full" id="dd-wip-info" style="display:none;">
+            <div class="stock-info">WIP Available: <strong id="dd-wip-qty" style="color:var(--purple);">—</strong> &nbsp;|&nbsp; Unit: <strong id="dd-wip-unit">—</strong></div>
+          </div>
+          <div class="fi"><label class="inp-label">Qty to Dispatch *</label><input class="inp" id="dd-qty" type="number" min="1" placeholder="0" oninput="updDirectDispatchQty()"></div>
+          <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="dd-date" type="date"></div>
+          <div class="fi"><label class="inp-label">Dispatch To * <span style="color:var(--red);">*</span></label><input class="inp" id="dd-to" placeholder="Customer name"></div>
+          <div class="fi"><label class="inp-label">Invoice No.</label><input class="inp" id="dd-invoice" placeholder="INV-001"></div>
+          <div class="fi"><label class="inp-label">Order Ref</label><input class="inp" id="dd-ref" placeholder="ORD-001"></div>
+          <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="dd-by" placeholder="Sandeep"></div>
+          <div class="fi full"><label class="inp-label">Remarks</label><input class="inp" id="dd-remarks" placeholder="Optional"></div>
+        </div>
+        <!-- Confirm summary -->
+        <div id="dd-summary" style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;"></div>
+        <div id="dd-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin-top:12px;font-size:13px;color:var(--red);font-weight:600;"></div>
+      </div>
+
     </div>
-    <div class="mf"><button class="btn bg" onclick="closeM('dispatch-modal')">Cancel</button><button class="btn bp" id="dis-btn" onclick="saveDispatch()">Confirm Dispatch</button></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('dispatch-modal')">Cancel</button>
+      <button class="btn bp" id="dis-btn" onclick="saveDispatch()" style="display:none;">Confirm Battery Dispatch</button>
+      <button class="btn bp" id="dd-btn" onclick="saveDirectDispatch()" style="display:none;">Confirm Charger Dispatch</button>
+    </div>
   </div>
 </div>
 
