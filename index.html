@@ -301,8 +301,14 @@
     <div class="page" id="page-received">
       <div class="tb">
         <div class="pt"><h1>📥 Received from Store</h1><p>Store se production mein aaya material</p></div>
-        <div class="ta" style="display:flex;gap:8px;align-items:center;">
+        <div class="ta" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           <input type="date" class="inp" id="recv-date" style="width:160px;" onchange="loadReceived()">
+          <select class="inp" id="recv-cat" style="width:170px;" onchange="loadReceived()">
+            <option value="">All Categories</option>
+            <option>Cells</option><option>BMS</option><option>Charger</option>
+            <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
+            <option>Consumables</option><option>Tools</option><option>Packaging</option>
+          </select>
           <button class="btn bg bsm" onclick="loadReceived()">↻ Refresh</button>
         </div>
       </div>
