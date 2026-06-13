@@ -14,7 +14,7 @@ const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Catho
 const ROLES = {
   admin:   { pin: '1234', name: 'Admin',   homePage: 'dashboard',    pages: ['dashboard','inward','outward','dispatch','wip','requests','items','opening','bom','indent','stock','reorder','closing'] },
   ajay:    { pin: '0001', name: 'Ajay',    homePage: 'ajay-dash',    pages: ['ajay-dash','inward','outward','requests','items','opening','bom','indent','stock','reorder'] },
-  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','wip','stock','items','bom'] },
+  sandeep: { pin: '0002', name: 'Sandeep', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','received','wip','stock','items','bom'] },
 };
 
 let _currentRole = null;
@@ -186,6 +186,7 @@ function showPage(id) {
   if (id === 'indent')       loadIndents();
   if (id === 'requests')     loadRequests();
   if (id === 'wip')          loadWip();
+  if (id === 'received')     { const d = document.getElementById('recv-date'); if(d) d.value = today(); loadReceived(); }
   if (id === 'ajay-dash')    loadAjayDash();
   if (id === 'sandeep-dash') loadSandeepDash();
 }
@@ -1993,7 +1994,87 @@ async function loadAjayDash() {
   } catch(e) { toast(e.message, 'err'); setDot('err', 'Error'); }
 }
 
-// ── WIP TRACKER ──
+// ── RECEIVED FROM STORE (Sandeep) ──
+async function loadReceived() {
+  const dateEl = document.getElementById('recv-date');
+  if (!dateEl.value) dateEl.value = today();
+  const date = dateEl.value;
+  const wrap = document.getElementById('recv-content');
+  wrap.innerHTML = `<div class="empty"><div class="ei">⏳</div><div class="et">Loading...</div></div>`;
+
+  try {
+    // Get outward entries for this date (store to production)
+    const rows = await api('getOutward', { date });
+    // Exclude dispatch-generated entries
+    const received = rows.filter(r => !String(r.remarks||'').startsWith('Dispatch:') && !String(r.remarks||'').startsWith('Direct Dispatch:'));
+
+    if (!received.length) {
+      wrap.innerHTML = `<div class="empty"><div class="ei">📭</div><div class="et">Is date koi material nahi aaya</div></div>`;
+      return;
+    }
+
+    // Group by category
+    const catMap = {};
+    received.forEach(r => {
+      const stock = _stocks.find(s => s.name === r.itemName);
+      const cat = stock ? stock.cat : 'Other';
+      if (!catMap[cat]) catMap[cat] = [];
+      catMap[cat].push(r);
+    });
+
+    const totalQty = received.reduce((s, r) => s + r.qty, 0);
+    const cats = Object.keys(catMap).sort();
+
+    let html = `
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+        <div class="card" style="flex:1;min-width:140px;padding:14px 18px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;">Total Items</div>
+          <div style="font-size:28px;font-weight:700;color:var(--navy);font-family:var(--mono);margin-top:4px;">${received.length}</div>
+        </div>
+        <div class="card" style="flex:1;min-width:140px;padding:14px 18px;">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;">Categories</div>
+          <div style="font-size:28px;font-weight:700;color:var(--accent);font-family:var(--mono);margin-top:4px;">${cats.length}</div>
+        </div>
+      </div>`;
+
+    cats.forEach(cat => {
+      const items = catMap[cat];
+      const catTotal = items.reduce((s, r) => s + r.qty, 0);
+      const icon = {'BMS':'⚡','Cells':'🔋','Charger':'🔌','Wire':'🔩','Nickel/Busbar':'🪙','Box':'📦','Consumables':'🧰','Tools':'🔧','Packaging':'📦'}[cat] || '📦';
+
+      html += `<div class="card" style="margin-bottom:12px;">
+        <div style="padding:12px 16px;background:#f8faff;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px;">${icon}</span>
+            <span style="font-weight:700;color:var(--navy);font-size:14px;">${cat}</span>
+            <span style="font-size:11px;color:var(--muted);">${items.length} items</span>
+          </div>
+          <span style="font-family:var(--mono);font-weight:700;color:var(--accent);">${catTotal} total</span>
+        </div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th>Item</th><th>Qty</th><th>Unit</th><th>Issued By</th><th>Time</th><th>Remarks</th>
+          </tr></thead>
+          <tbody>
+            ${items.map(r => `<tr>
+              <td style="font-weight:600;color:var(--navy);">${r.itemName}</td>
+              <td style="font-family:var(--mono);font-weight:700;color:var(--orange);">${r.qty}</td>
+              <td style="color:var(--muted);">${r.unit||'—'}</td>
+              <td>${r.by||'—'}</td>
+              <td style="color:var(--muted);font-size:11px;">${r.ts ? new Date(r.ts).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) : '—'}</td>
+              <td style="font-size:11px;color:var(--muted);">${r.remarks||'—'}</td>
+            </tr>`).join('')}
+          </tbody>
+        </table></div>
+      </div>`;
+    });
+
+    wrap.innerHTML = html;
+  } catch(e) {
+    toast(e.message, 'err');
+    wrap.innerHTML = `<div class="empty"><div class="ei">❌</div><div class="et">${e.message}</div></div>`;
+  }
+}
 async function loadWip() {
   const tb = document.getElementById('wip-tb');
   const em = document.getElementById('wip-empty');
