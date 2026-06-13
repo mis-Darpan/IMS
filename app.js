@@ -205,6 +205,14 @@ function depBadge(d) {
 }
 
 // ── DASHBOARD (ADMIN) ──
+async function migrateCategories() {
+  try {
+    const r = await api('migrateCategories');
+    toast(`✓ ${r.message} — page reload ho raha hai`, 'ok');
+    setTimeout(() => location.reload(), 1500);
+  } catch(e) { toast(e.message, 'err'); }
+}
+
 async function loadDash() {
   const now = new Date();
   const hr = now.getHours();
@@ -692,7 +700,7 @@ function updItemName() {
     : _selBrand;
   const model = (document.getElementById('f-model').value || '').trim();
   let name = '';
-  if (['Nickel/Busbar','Tools','Consumables','Packaging'].includes(_selCat)) {
+  if (['Tools','Consumables','Packaging'].includes(_selCat)) {
     name = model || _selCat;
   } else {
     name = [_selCat, brand, model].filter(Boolean).join(' ');
@@ -966,7 +974,7 @@ function toggleStockView() {
 
 function parseBrand(item) {
   // Categories without brands — use item name directly
-  if (['Consumables', 'Tools', 'Nickel/Busbar', 'Packaging'].includes(item.cat)) return item.name;
+  if (['Consumables', 'Tools', 'Packaging'].includes(item.cat)) return item.name;
   // For branded categories — second word is brand
   const parts = item.name.split(' ');
   if (parts.length >= 2) return parts[1];
@@ -983,7 +991,7 @@ function renderStockTree(stocks) {
   stocks.forEach(s => {
     const cat   = s.cat || 'Other';
     // No brand grouping for these categories
-    const noBrandCats = ['Consumables', 'Tools', 'Nickel/Busbar', 'Packaging'];
+    const noBrandCats = ['Consumables', 'Tools', 'Packaging'];
     const brand = noBrandCats.includes(cat) ? '__direct__' : parseBrand(s);
     if (!tree[cat]) tree[cat] = {};
     if (!tree[cat][brand]) tree[cat][brand] = [];
