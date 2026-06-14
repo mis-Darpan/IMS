@@ -87,12 +87,7 @@ select.inp { cursor: pointer; }
       </div>
       <div class="field">
         <label>Department <span>*</span></label>
-        <select class="inp" id="f-dept">
-          <option value="">-- Select --</option>
-          <option>Volt Wing</option><option>Ampere Wing</option><option>Volt x Ampere Wing</option>
-          <option>Mega Grid</option><option>Cathodic Wing</option><option>Future Cell</option>
-          <option>Phoenix Wing</option><option>Other</option>
-        </select>
+        <select class="inp" id="f-dept"><option value="">-- Select --</option></select>
       </div>
     </div>
 
@@ -197,11 +192,24 @@ select.inp { cursor: pointer; }
 <div class="overlay" id="overlay"><div class="spinner"></div></div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbxZINt8m6S0QR7fk_W69b9hzSSrPkOP8II4anw_dT_ch0QRLGnroLQT5mkSK4npmngT/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzObqHKz55CCSwHSu0bjdoRIcHL2Sy4fFKHsJigfGAfxcVgPePJpD3UfnXW5EMjanBe/exec';
 
 function g(id) { return document.getElementById(id); }
 function v(id) { const el = g(id); return el ? (Number(el.value)||0) : 0; }
 function t(id) { const el = g(id); return el ? (el.value.trim()) : ''; }
+
+
+async function loadDepts() {
+  try {
+    const r = await fetch(API, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({action:'getConfig'})});
+    const cfg = JSON.parse(await r.text());
+    const sel = g('f-dept');
+    if (cfg && cfg.departments && cfg.departments.length) {
+      sel.innerHTML = '<option value="">-- Select --</option>' + cfg.departments.map(d => '<option>' + d + '</option>').join('');
+    }
+  } catch(e) {}
+}
+window.addEventListener('load', loadDepts);
 
 async function submitForm() {
   const name = t('f-name');
