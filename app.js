@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbzVPZ5iCe4MhlXS9LNNvxImUW-w8T7CjbhHJ15Kk_jb7ZXphY8MeZu8HiL0AijEiOC8/exec';
+const API = 'https://script.google.com/macros/s/AKfycbxlqAnEQ8qBMarYVY3t-wrVde1LAsxoQCPbhje1pTBqLvf-EKafSZ-UbqZ7VVuc9nla/exec';
 
 function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function showEl(id, show) { const el = document.getElementById(id); if (el) el.style.display = show ? 'inline' : 'none'; }
@@ -176,7 +176,7 @@ function showPage(id) {
   if (id === 'sandeep-dash') loadSandeepDash();
   if (id === 'inward')       loadInward();
   if (id === 'outward')      loadOutward();
-  if (id === 'dispatch')     loadDispatch();
+  if (id === 'dispatch')     { const d = document.getElementById('dis-filter-date'); if(d && !d.value) d.value = today(); loadDispatch(); }
   if (id === 'items')        loadItems();
   if (id === 'bom')          loadBom();
   if (id === 'stock')        loadStock();
@@ -469,12 +469,16 @@ async function saveOutward() {
 
 // ── DISPATCH ──
 async function loadDispatch() {
-  document.getElementById('dis-tb').innerHTML = `<tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr>`;
+  document.getElementById('dis-tb').innerHTML = `<tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr>`;
   try {
-    const rows = await api('getDispatch', {});
+    const dateEl = document.getElementById('dis-filter-date');
+    const date = dateEl ? dateEl.value : '';
+    const params = date ? { date } : {};
+    const rows = await api('getDispatch', params);
     renderDispatch(rows);
   } catch(e) { toast(e.message, 'err'); }
 }
+
 function renderDispatch(rows) {
   const tb = document.getElementById('dis-tb');
   const em = document.getElementById('dis-empty');
@@ -487,9 +491,51 @@ function renderDispatch(rows) {
     <td>${r.dispatchTo || '—'}</td>
     <td style="font-family:var(--mono);font-size:11px;">${r.orderRef || '—'}</td>
     <td style="font-size:12px;color:var(--muted);">${r.by || '—'}</td>
-    <td>${r.bomVerified === 'YES' ? '<span class="badge b-ok">✓ Yes</span>' : '<span class="badge b-ro">Pending</span>'}</td>
+    <td>${r.bomVerified === 'YES' || r.bomVerified === 'Direct' ? '<span class="badge b-ok">✓ Yes</span>' : '<span class="badge b-ro">Pending</span>'}</td>
     <td style="font-size:12px;color:var(--muted);">${r.remarks || '—'}</td>
+    <td style="white-space:nowrap;">
+      <button class="btn bg bsm" style="font-size:11px;padding:4px 8px;" onclick="openEditDispatch(${JSON.stringify(r).replace(/"/g,'&quot;')})">✏️</button>
+      <button class="btn brd bsm" style="font-size:11px;padding:4px 8px;margin-left:4px;" onclick="deleteDispatch('${r.id}','${r.bomModel}')">🗑</button>
+    </td>
   </tr>`).join('');
+}
+
+function openEditDispatch(r) {
+  document.getElementById('edit-dis-id').value      = r.id;
+  document.getElementById('edit-dis-model').value   = r.bomModel;
+  document.getElementById('edit-dis-qty').value     = r.qtyProduced;
+  document.getElementById('edit-dis-date').value    = r.date;
+  document.getElementById('edit-dis-to').value      = r.dispatchTo || '';
+  document.getElementById('edit-dis-ref').value     = r.orderRef || '';
+  document.getElementById('edit-dis-remarks').value = r.remarks || '';
+  document.getElementById('edit-dispatch-modal').classList.add('open');
+}
+
+async function saveEditDispatch() {
+  const id = document.getElementById('edit-dis-id').value;
+  const body = {
+    id,
+    qtyProduced: Number(document.getElementById('edit-dis-qty').value),
+    date:        document.getElementById('edit-dis-date').value,
+    dispatchTo:  document.getElementById('edit-dis-to').value,
+    orderRef:    document.getElementById('edit-dis-ref').value,
+    remarks:     document.getElementById('edit-dis-remarks').value,
+  };
+  try {
+    await api('updateDispatch', body);
+    toast('Dispatch updated ✓', 'ok');
+    closeM('edit-dispatch-modal');
+    loadDispatch();
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+async function deleteDispatch(id, model) {
+  if (!confirm(`"${model}" dispatch delete karna chahte ho?`)) return;
+  try {
+    await api('deleteDispatch', { id });
+    toast('Dispatch deleted ✓', 'ok');
+    loadDispatch();
+  } catch(e) { toast(e.message, 'err'); }
 }
 
 async function openDispatchModal() {
