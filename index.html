@@ -321,7 +321,12 @@
     <div class="page" id="page-wip">
       <div class="tb">
         <div class="pt"><h1>WIP Tracker</h1><p>Production mein kya kya hai — running balance</p></div>
-        <div class="ta"><button class="btn bg bsm" onclick="loadWip()">↻ Refresh</button></div>
+        <div class="ta">
+          <select class="inp cat-filter-select" id="wip-cat-f" style="width:160px;" onchange="filterWip()">
+            <option value="">All Categories</option>
+          </select>
+          <button class="btn bg bsm" onclick="loadWip()">↻ Refresh</button>
+        </div>
       </div>
       <div class="card">
         <div class="tw"><table>
