@@ -269,13 +269,21 @@
               <option>Mega Grid</option><option>Cathodic Wing</option><option>Future Cell</option>
               <option>Phoenix Wing</option><option>Other</option>
             </select>
+            <select class="inp" id="out-item-f" style="width:200px;" onchange="loadOutward()">
+              <option value="">All Items</option>
+            </select>
+            <select class="inp" id="out-purpose-f" style="width:150px;" onchange="loadOutward()">
+              <option value="">All Purpose</option>
+              <option value="Production">🏭 Production</option>
+              <option value="Repair/Other">🔧 Repair / Other</option>
+            </select>
             <button class="btn bg bsm" onclick="clearOutFilters()">Clear</button>
           </div>
         </div>
       </div>
       <div class="card">
         <div class="tw"><table>
-            <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Department</th><th>Issued To</th><th>By</th><th>Remarks</th></tr></thead>
+            <thead><tr><th>Date</th><th>Item Name</th><th>Qty</th><th>Unit</th><th>Purpose</th><th>Department</th><th>Issued To</th><th>By</th><th>Remarks</th></tr></thead>
             <tbody id="out-tb"><tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr></tbody>
         </table></div>
         <div id="out-empty" class="empty" style="display:none"><div class="ei">📤</div><div class="et">No outward records</div></div>
@@ -583,7 +591,18 @@
         <div class="fi full" id="in-stock-info" style="display:none"><div class="stock-info">Stock: <strong id="in-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="in-rp">—</strong> &nbsp;|&nbsp; In Transit: <strong id="in-mit">—</strong></div></div>
         <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="in-qty" type="number" min="1" placeholder="0"></div>
         <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="in-date" type="date"></div>
-        <div class="fi"><label class="inp-label">Supplier</label><input class="inp" id="in-supplier" placeholder="Supplier name"></div>
+        <div class="fi full">
+          <label class="inp-label">Purpose *</label>
+          <div style="display:flex;gap:10px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;" id="in-purpose-rm">
+              <input type="radio" name="in-purpose" value="Raw Material" checked onchange="updInwardPurpose()"> 📦 Raw Material
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;" id="in-purpose-fp">
+              <input type="radio" name="in-purpose" value="From Production" onchange="updInwardPurpose()"> 🔄 From Production
+            </label>
+          </div>
+        </div>
+        <div class="fi" id="in-supplier-wrap"><label class="inp-label">Supplier</label><input class="inp" id="in-supplier" placeholder="Supplier name"></div>
         <div class="fi"><label class="inp-label">Invoice / PO No.</label><input class="inp" id="in-invoice" placeholder="INV-001"></div>
         <div class="fi"><label class="inp-label">Recorded By</label><input class="inp" id="in-by" placeholder="Ajay"></div>
         <div class="fi"><label class="inp-label">Remarks</label><input class="inp" id="in-remarks" placeholder="Optional"></div>
@@ -615,6 +634,17 @@
           </select>
         </div>
         <div class="fi full" id="out-stock-info" style="display:none"><div class="stock-info">Available: <strong id="out-cs">—</strong> &nbsp;|&nbsp; ROP: <strong id="out-rp">—</strong></div></div>
+        <div class="fi full">
+          <label class="inp-label">Purpose *</label>
+          <div style="display:flex;gap:10px;">
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;" id="out-purpose-prod">
+              <input type="radio" name="out-purpose" value="Production" checked> 🏭 Production
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;padding:8px 14px;border:1.5px solid var(--border);border-radius:8px;flex:1;" id="out-purpose-repair">
+              <input type="radio" name="out-purpose" value="Repair/Other"> 🔧 Repair / Other
+            </label>
+          </div>
+        </div>
         <div class="fi"><label class="inp-label">Quantity *</label><input class="inp" id="out-qty" type="number" min="1" placeholder="0"></div>
         <div class="fi"><label class="inp-label">Date *</label><input class="inp" id="out-date" type="date"></div>
         <div class="fi"><label class="inp-label">Department *</label>
