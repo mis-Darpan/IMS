@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbxw0xfioFpyI5wB2gcQDKTDFQgM2WpbzGgVcgIe4Mdy7jj5ekFA1eLxu8bjtk92kxnw/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzvQeK99fNidQvCarTL-X-eBKBfid0d8T9X-kFclPBYakQ4GJhKsLS5uNHHsRAbKhDD/exec';
 
 function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function showEl(id, show) { const el = document.getElementById(id); if (el) el.style.display = show ? 'inline' : 'none'; }
@@ -340,9 +340,11 @@ async function saveInward() {
   const btn = document.getElementById('in-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
+    const inPurpose = document.querySelector('input[name="in-purpose"]:checked')?.value || 'Raw Material';
     await api('addInward', {
       itemName, qty, date,
-      supplier: document.getElementById('in-supplier').value,
+      purpose:  inPurpose,
+      supplier: inPurpose === 'Raw Material' ? document.getElementById('in-supplier').value : '',
       invoice:  document.getElementById('in-invoice').value,
       by:       document.getElementById('in-by').value || 'Ajay',
       remarks:  document.getElementById('in-remarks').value,
@@ -356,16 +358,35 @@ async function saveInward() {
   finally { btn.disabled = false; btn.textContent = 'Save Inward'; }
 }
 
+function updInwardPurpose() {
+  const purpose = document.querySelector('input[name="in-purpose"]:checked')?.value;
+  const supWrap = document.getElementById('in-supplier-wrap');
+  if (supWrap) supWrap.style.display = purpose === 'From Production' ? 'none' : '';
+}
+
 // ── OUTWARD ──
 async function loadOutward() {
-  const dateF = document.getElementById('out-date-f').value;
-  const deptF = document.getElementById('out-dept-f').value;
-  document.getElementById('out-tb').innerHTML = `<tr class="lrow"><td colspan="8"><span class="loader"></span></td></tr>`;
+  const dateF    = document.getElementById('out-date-f').value;
+  const deptF    = document.getElementById('out-dept-f').value;
+  const itemF    = document.getElementById('out-item-f')?.value || '';
+  const purposeF = document.getElementById('out-purpose-f')?.value || '';
+  document.getElementById('out-tb').innerHTML = `<tr class="lrow"><td colspan="9"><span class="loader"></span></td></tr>`;
   try {
     const body = {};
     if (dateF) body.date = dateF;
     if (deptF) body.department = deptF;
-    const rows = await api('getOutward', body);
+    let rows = await api('getOutward', body);
+    // Populate item filter
+    const itemF_el = document.getElementById('out-item-f');
+    if (itemF_el && itemF_el.options.length <= 1) {
+      const allItems = [...new Set(rows.map(r => r.itemName).filter(Boolean))].sort();
+      allItems.forEach(i => { const o = document.createElement('option'); o.value = i; o.textContent = i; itemF_el.appendChild(o); });
+      if (itemF) itemF_el.value = itemF;
+    }
+    // Apply item filter
+    if (itemF) rows = rows.filter(r => r.itemName === itemF);
+    // Apply purpose filter
+    if (purposeF) rows = rows.filter(r => (r.purpose||'Production') === purposeF);
     renderOutward(rows);
   } catch(e) { toast(e.message, 'err'); }
 }
@@ -374,20 +395,30 @@ function renderOutward(rows) {
   const em = document.getElementById('out-empty');
   if (!rows.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
   em.style.display = 'none';
-  tb.innerHTML = rows.map(r => `<tr>
+  tb.innerHTML = rows.map(r => {
+    const purpose = r.purpose || 'Production';
+    const purBadge = purpose === 'Production'
+      ? `<span class="badge b-in">🏭 Production</span>`
+      : `<span class="badge b-con">🔧 Repair</span>`;
+    return `<tr>
     <td style="color:var(--muted);font-size:12px;">${fmtD(r.date)}</td>
     <td style="font-weight:500;">${r.itemName}</td>
     <td style="font-family:var(--mono);font-weight:700;color:var(--red);">-${r.qty}</td>
     <td style="color:var(--muted);font-size:12px;">${r.unit || '—'}</td>
+    <td>${purBadge}</td>
     <td>${depBadge(r.department)}</td>
     <td style="font-size:12px;">${r.issuedTo || '—'}</td>
     <td style="font-size:12px;color:var(--muted);">${r.by || '—'}</td>
     <td style="font-size:12px;color:var(--muted);">${r.remarks || '—'}</td>
-  </tr>`).join('');
+  </tr>`;}).join('');
 }
 function clearOutFilters() {
   document.getElementById('out-date-f').value = '';
   document.getElementById('out-dept-f').value = '';
+  const itemF = document.getElementById('out-item-f');
+  if (itemF) { itemF.innerHTML = '<option value="">All Items</option>'; }
+  const purF = document.getElementById('out-purpose-f');
+  if (purF) purF.value = '';
   loadOutward();
 }
 
@@ -449,8 +480,10 @@ async function saveOutward() {
   const btn = document.getElementById('out-btn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
+    const outPurpose = document.querySelector('input[name="out-purpose"]:checked')?.value || 'Production';
     await api('addOutward', {
       itemName, qty, date, department,
+      purpose:  outPurpose,
       issuedTo: document.getElementById('out-issuedto').value,
       by:       document.getElementById('out-by').value || 'Ajay',
       remarks:  document.getElementById('out-remarks').value,
