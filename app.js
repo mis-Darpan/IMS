@@ -2678,6 +2678,42 @@ function initADC() {
   }
 }
 
+function downloadADCPdf() {
+  const from = document.getElementById('adc-from').value;
+  const to   = document.getElementById('adc-to').value;
+  const cat  = document.getElementById('adc-cat').value;
+  const rows = document.getElementById('adc-tb').innerHTML;
+
+  const win = window.open('', '_blank');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <title>ADC Report — ${from} to ${to}</title>
+    <style>
+      body { font-family: 'Segoe UI', sans-serif; padding: 24px; color: #1a1a2e; }
+      h2 { font-size: 18px; margin-bottom: 4px; }
+      p  { font-size: 12px; color: #666; margin-bottom: 16px; }
+      table { width: 100%; border-collapse: collapse; font-size: 12px; }
+      thead th { background: #0d1f3c; color: #fff; padding: 8px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+      thead th:last-child { background: #b45309; }
+      tbody td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }
+      tbody tr:nth-child(even) { background: #f9fafb; }
+      .footer { margin-top: 20px; font-size: 10px; color: #999; text-align: right; }
+    </style>
+  </head><body>
+    <h2>ADC Report — Average Daily Consumption</h2>
+    <p>Period: <b>${from}</b> to <b>${to}</b>${cat ? ' &nbsp;|&nbsp; Category: <b>'+cat+'</b>' : ''} &nbsp;|&nbsp; Generated: <b>${new Date().toLocaleDateString('en-IN')}</b></p>
+    <table>
+      <thead><tr>
+        <th>Item</th><th>Category</th><th>Unit</th>
+        <th>Total Inward</th><th>Total Outward</th><th>Days</th><th>ADC (/day)</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">Litpax Technology Pvt. Ltd. — IMS Report</div>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => { win.print(); }, 400);
+}
+
 async function loadADC() {
   const fromVal = document.getElementById('adc-from').value;
   const toVal   = document.getElementById('adc-to').value;
@@ -2723,6 +2759,10 @@ async function loadADC() {
     if (catVal) rows = rows.filter(r => r.cat === catVal);
 
     if (!rows.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+
+    // PDF button show karo
+    const pdfBtn = document.getElementById('adc-pdf-btn');
+    if (pdfBtn) pdfBtn.style.display = '';
 
     tb.innerHTML = rows.map(r => {
       const adc = r.outQty > 0 ? (r.outQty / days).toFixed(2) : '0.00';
