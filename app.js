@@ -188,6 +188,7 @@ function showPage(id) {
   if (id === 'indent')       loadIndents();
   if (id === 'requests')     loadRequests();
   if (id === 'wip')          loadWip();
+  if (id === 'adc')          initADC();
   if (id === 'received')     { const d = document.getElementById('recv-date'); if(d) d.value = today(); loadReceived(); }
   if (id === 'ajay-dash')    loadAjayDash();
   if (id === 'sandeep-dash') loadSandeepDash();
@@ -2608,6 +2609,22 @@ async function saveCreatePO() {
     }
   });
 
+  // Manual items bhi add karo
+  const manualRows = document.getElementById('po-manual-rows');
+  if (manualRows) {
+    const n = manualRows.children.length;
+    for (let i = 0; i < n; i++) {
+      const itemEl = document.getElementById('po-manual-item-'+i);
+      const qtyEl  = document.getElementById('po-manual-qty-'+i);
+      if (!itemEl || !qtyEl) continue;
+      const itemName = itemEl.value;
+      const qty = Number(qtyEl.value) || 0;
+      if (itemName && qty > 0) {
+        toCreate.push({ itemName, qty, supplier, expectedDate: expDate });
+      }
+    }
+  }
+
   if (!toCreate.length) { toast('Koi item select nahi hai', 'err'); return; }
 
   const btn = document.getElementById('po-btn');
@@ -2638,6 +2655,136 @@ async function saveCreatePO() {
 let _sbInOpen  = false;
 let _sbOutOpen = false;
 let _sbInData  = [];
+
+// ── ADC CALCULATE ──
+function initADC() {
+  const today = new Date();
+  const weekAgo = new Date(today);
+  weekAgo.setDate(today.getDate() - 6);
+  const fmt = d => d.toISOString().split('T')[0];
+  const fromEl = document.getElementById('adc-from');
+  const toEl   = document.getElementById('adc-to');
+  if (fromEl && !fromEl.value) fromEl.value = fmt(weekAgo);
+  if (toEl   && !toEl.value)   toEl.value   = fmt(today);
+
+  // Category filter populate
+  const catEl = document.getElementById('adc-cat');
+  if (catEl && catEl.options.length <= 1 && _config.categories) {
+    _config.categories.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c; o.textContent = c;
+      catEl.appendChild(o);
+    });
+  }
+}
+
+async function loadADC() {
+  const fromVal = document.getElementById('adc-from').value;
+  const toVal   = document.getElementById('adc-to').value;
+  const catVal  = document.getElementById('adc-cat').value;
+  if (!fromVal || !toVal) { toast('Date range select karo', 'err'); return; }
+
+  const tb = document.getElementById('adc-tb');
+  const em = document.getElementById('adc-empty');
+  tb.innerHTML = `<tr class="lrow"><td colspan="7"><span class="loader"></span></td></tr>`;
+  em.style.display = 'none';
+
+  try {
+    const [inRows, outRows] = await Promise.all([
+      api('getInward', {}),
+      api('getOutward', {}),
+    ]);
+
+    // Date filter
+    const from = new Date(fromVal); from.setHours(0,0,0,0);
+    const to   = new Date(toVal);   to.setHours(23,59,59,999);
+    const days = Math.max(1, Math.round((to - from) / (1000*60*60*24)) + 1);
+
+    const inFiltered  = inRows.filter(r => { const d = new Date(r.date); return d >= from && d <= to; });
+    const outFiltered = outRows.filter(r => { const d = new Date(r.date); return d >= from && d <= to; });
+
+    // Aggregate by item
+    const map = {};
+    const addItem = (name, unit, cat) => {
+      if (!map[name]) map[name] = { name, unit, cat: cat||'', inQty: 0, outQty: 0 };
+    };
+    inFiltered.forEach(r => { addItem(r.itemName, r.unit, r.cat); map[r.itemName].inQty += r.qty||0; });
+    outFiltered.forEach(r => { addItem(r.itemName, r.unit, r.cat); map[r.itemName].outQty += r.qty||0; });
+
+    // Enrich category from stocks
+    if (_stocks.length) {
+      _stocks.forEach(s => { if (map[s.name]) map[s.name].cat = s.cat||map[s.name].cat; });
+    } else {
+      const st = await api('getStockSummary');
+      st.forEach(s => { if (map[s.name]) map[s.name].cat = s.cat||map[s.name].cat; });
+    }
+
+    let rows = Object.values(map).sort((a,b) => b.outQty - a.outQty);
+    if (catVal) rows = rows.filter(r => r.cat === catVal);
+
+    if (!rows.length) { tb.innerHTML = ''; em.style.display = 'block'; return; }
+
+    tb.innerHTML = rows.map(r => {
+      const adc = r.outQty > 0 ? (r.outQty / days).toFixed(2) : '0.00';
+      const adcColor = Number(adc) > 0 ? 'var(--orange)' : 'var(--muted)';
+      return `<tr>
+        <td style="font-weight:600;color:var(--navy);">${r.name}</td>
+        <td>${catBadge(r.cat)}</td>
+        <td style="color:var(--muted);font-size:12px;">${r.unit||'—'}</td>
+        <td style="font-family:var(--mono);color:var(--green);font-weight:600;">${r.inQty}</td>
+        <td style="font-family:var(--mono);color:var(--red);font-weight:600;">${r.outQty}</td>
+        <td style="font-family:var(--mono);color:var(--muted);">${days}</td>
+        <td style="background:#fffbeb;">
+          <span style="font-family:var(--mono);font-weight:800;font-size:15px;color:${adcColor};">${adc}</span>
+          <span style="font-size:10px;color:var(--muted);margin-left:3px;">/day</span>
+        </td>
+      </tr>`;
+    }).join('');
+  } catch(e) { toast(e.message, 'err'); }
+}
+
+// ── MANUAL PO ITEM ──
+let _manualPOItems = [];
+
+function addManualPOItem() {
+  // Simple prompt-style inline row add
+  const list = document.getElementById('po-items-list');
+  const manualDiv = document.getElementById('po-manual-section');
+  
+  if (!manualDiv) {
+    // Create manual section first time
+    const div = document.createElement('div');
+    div.id = 'po-manual-section';
+    div.style.cssText = 'margin-top:14px;border-top:1px solid var(--border);padding-top:12px;';
+    div.innerHTML = `
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px;">Manual Items</div>
+      <div id="po-manual-rows"></div>
+      <button class="btn bg bsm" style="margin-top:8px;" onclick="addManualPORow()">+ Add Another</button>
+    `;
+    list.appendChild(div);
+    addManualPORow();
+  } else {
+    addManualPORow();
+  }
+}
+
+function addManualPORow() {
+  const container = document.getElementById('po-manual-rows');
+  if (!container) return;
+  const idx = container.children.length;
+  const items = _stocks.length ? _stocks.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '';
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:2fr 80px 36px;gap:8px;margin-bottom:8px;align-items:center;';
+  row.innerHTML = `
+    <select class="inp" id="po-manual-item-${idx}" style="font-size:12px;">
+      <option value="">-- Select Item --</option>
+      ${items}
+    </select>
+    <input type="number" class="inp" id="po-manual-qty-${idx}" placeholder="Qty" min="1" style="font-size:12px;text-align:center;">
+    <button class="btn brd bsm" onclick="this.parentElement.remove()" style="padding:5px 8px;">✕</button>
+  `;
+  container.appendChild(row);
+}
 let _sbOutData = [];
 
 async function loadSbActivity() {
