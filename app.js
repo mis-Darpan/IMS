@@ -99,6 +99,8 @@ let _clRows  = [];
 let _clDate  = '';
 
 // ── UTILS ──
+function htmlEnc(s) { return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 function today() { return new Date().toISOString().slice(0, 10); }
 function fmtD(d) {
   if (!d) return '—';
@@ -308,14 +310,11 @@ function filterInwardItems() {
   document.getElementById('in-stock-info').style.display = 'none';
   if (!cat) return;
   const filtered = _items.filter(i => i.cat === cat);
+  const addOpt = (name) => { const o = document.createElement('option'); o.value = name; o.textContent = name; sel.appendChild(o); };
   if (!filtered.length && _stocks.length) {
-    _stocks.filter(s => s.cat === cat).forEach(s => {
-      sel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
-    });
+    _stocks.filter(s => s.cat === cat).forEach(s => addOpt(s.name));
   } else {
-    filtered.forEach(i => {
-      sel.innerHTML += `<option value="${i.name}">${i.name}</option>`;
-    });
+    filtered.forEach(i => addOpt(i.name));
   }
 }
 
@@ -447,7 +446,10 @@ function filterOutwardItems() {
   if (!cat) return;
   const src = _stocks.length ? _stocks : _items;
   src.filter(s => s.cat === cat).forEach(s => {
-    sel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+    const opt = document.createElement('option');
+    opt.value = s.name;
+    opt.textContent = s.name;
+    sel.appendChild(opt);
   });
 }
 
