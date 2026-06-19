@@ -352,11 +352,8 @@
         <div class="pt"><h1>Items</h1><p>Raw materials, components — reorder settings</p></div>
         <div class="ta">
           <input class="inp" id="item-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterItems()">
-          <select class="inp" id="item-cat-f" style="width:160px;" onchange="filterItems()">
+          <select class="inp cat-filter-select" id="item-cat-f" style="width:160px;" onchange="filterItems()">
             <option value="">All Categories</option>
-            <option>Cells</option><option>BMS</option><option>Charger</option>
-            <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
-            <option>Consumables</option><option>Tools</option><option>Packaging</option>
           </select>
           <button class="btn bp" onclick="openItemModal()">+ Add Item</button>
         </div>
@@ -394,11 +391,8 @@
         <div class="pt"><h1>Stock Summary</h1><p>Category → Brand → Model — Live Stock</p></div>
         <div class="ta">
           <input class="inp" id="stock-search" placeholder="🔍 Search..." style="width:170px;" oninput="filterStock()">
-          <select class="inp" id="stock-cat-f" style="width:140px;" onchange="filterStock()">
+          <select class="inp cat-filter-select" id="stock-cat-f" style="width:140px;" onchange="filterStock()">
             <option value="">All Categories</option>
-            <option>Cells</option><option>BMS</option><option>Charger</option>
-            <option>Nickel/Busbar</option><option>Box</option><option>Wire</option>
-            <option>Consumables</option><option>Tools</option><option>Packaging</option>
           </select>
           <select class="inp" id="stock-status-f" style="width:120px;" onchange="filterStock()">
             <option value="">All Status</option><option>Critical</option><option>Reorder</option><option>OK</option>
