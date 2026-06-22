@@ -28,14 +28,61 @@ function selectRole(role) {
   document.getElementById('login-err').style.display = 'none';
 }
 
+// ── PIN SECURITY ──
+let _pinAttempts = 0;
+let _pinLocked   = false;
+let _lockTimer   = null;
+
 function doLogin() {
   const pin = document.getElementById('login-pin').value;
   const err = document.getElementById('login-err');
-  if (!_selectedRole) { err.textContent = '❌ Pehle role select karo'; err.style.display = 'block'; return; }
-  if (pin !== ROLES[_selectedRole].pin) { err.style.display = 'block'; err.textContent = '❌ Galat PIN — dobara try karo'; document.getElementById('login-pin').value = ''; return; }
+
+  if (!_selectedRole) {
+    err.textContent = '❌ Pehle role select karo';
+    err.style.display = 'block';
+    return;
+  }
+
+  if (_pinLocked) {
+    err.style.display = 'block';
+    err.textContent = '🔒 Account locked — wait karo';
+    return;
+  }
+
+  if (pin !== ROLES[_selectedRole].pin) {
+    _pinAttempts++;
+    document.getElementById('login-pin').value = '';
+
+    if (_pinAttempts >= 3) {
+      _pinLocked = true;
+      let secs = 30;
+      err.style.display = 'block';
+      const tick = () => {
+        err.textContent = `🔒 3 galat attempts — ${secs}s baad try karo`;
+        if (secs <= 0) {
+          _pinLocked   = false;
+          _pinAttempts = 0;
+          err.textContent = '❌ Galat PIN — dobara try karo';
+          clearInterval(_lockTimer);
+        }
+        secs--;
+      };
+      tick();
+      _lockTimer = setInterval(tick, 1000);
+    } else {
+      err.style.display = 'block';
+      err.textContent = `❌ Galat PIN — ${3 - _pinAttempts} attempts bache`;
+    }
+    return;
+  }
+
+  // Correct PIN
+  _pinAttempts = 0;
+  _pinLocked   = false;
+  clearInterval(_lockTimer);
   _currentRole = _selectedRole;
-  localStorage.setItem('lpx_role', _currentRole);
-  localStorage.setItem('lpx_name', ROLES[_currentRole].name);
+  sessionStorage.setItem('lpx_role', _currentRole);
+  sessionStorage.setItem('lpx_name', ROLES[_currentRole].name);
   showApp();
 }
 
@@ -77,8 +124,8 @@ function applyRoleUI() {
 }
 
 function logout() {
-  localStorage.removeItem('lpx_role');
-  localStorage.removeItem('lpx_name');
+  sessionStorage.removeItem('lpx_role');
+  sessionStorage.removeItem('lpx_name');
   _currentRole = null; _selectedRole = null;
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app-shell').style.display = 'none';
@@ -148,7 +195,7 @@ window.onload = async function() {
   setDot('loading', 'Connecting...');
   // Load config first (categories, brands, units etc.)
   await loadConfig();
-  const savedRole = localStorage.getItem('lpx_role');
+  const savedRole = sessionStorage.getItem('lpx_role');
   if (savedRole && ROLES[savedRole]) {
     _currentRole = savedRole;
     showApp();
