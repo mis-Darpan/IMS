@@ -900,6 +900,12 @@ async function loadConfig() {
     if (cfg && cfg.categories && cfg.categories.length) {
       _config = cfg;
     }
+    // ── Sheet se PINs load karo ──
+    if (cfg && cfg.roles) {
+      Object.keys(cfg.roles).forEach(role => {
+        if (ROLES[role]) ROLES[role].pin = cfg.roles[role];
+      });
+    }
     applyConfigToUI();
   } catch(e) {
     // Fallback to defaults already set
