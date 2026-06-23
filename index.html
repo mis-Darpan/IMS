@@ -543,24 +543,38 @@
       </div>
     </div>
 
-    <!-- INDENT / PO -->
+<!-- INDENT / PO -->
     <div class="page" id="page-indent">
       <div class="tb">
-        <div class="pt"><h1>Indent / PO</h1><p>Track purchase orders</p></div>
+        <div class="pt"><h1>Purchase Orders</h1><p>Track purchase orders & receive materials</p></div>
         <div class="ta">
           <select class="inp" id="indent-status-f" style="width:140px;" onchange="loadIndents()">
-            <option value="">All</option><option value="Pending">Pending</option>
-            <option value="Received">Received</option><option value="Cancelled">Cancelled</option>
+            <option value="">All</option>
+            <option value="Pending">Pending</option>
+            <option value="Partial">Partial</option>
+            <option value="Completed">Completed</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
-          <button class="btn bp" onclick="openIndentModal()">+ New Indent</button>
         </div>
       </div>
       <div class="card">
         <div class="tw"><table>
-            <thead><tr><th>Indent ID</th><th>Date</th><th>Item</th><th>SKU</th><th>Qty</th><th>Supplier</th><th>Expected</th><th>Status</th><th>Remarks</th><th></th></tr></thead>
-            <tbody id="indent-tb"><tr class="lrow"><td colspan="10"><span class="loader"></span></td></tr></tbody>
+          <thead><tr>
+            <th>PO ID</th>
+            <th>Date</th>
+            <th>Supplier</th>
+            <th>Expected</th>
+            <th>Status</th>
+            <th>Items</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="indent-tb"><tr class="lrow"><td colspan="7"><span class="loader"></span></td></tr></tbody>
         </table></div>
-        <div id="indent-empty" class="empty" style="display:none"><div class="ei">📋</div><div class="et">No indents yet</div></div>
+        <div id="indent-empty" class="empty" style="display:none">
+          <div class="ei">📋</div>
+          <div class="et">No POs yet</div>
+          <div class="es">Reorder page se Create PO karo</div>
+        </div>
       </div>
     </div>
 
