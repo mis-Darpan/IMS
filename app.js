@@ -1952,7 +1952,6 @@ async function togglePOExpand(poId) {
   renderPOs();
 }
 
-// ── LOAD & RENDER PO ITEMS ──
 async function loadPOItems(poId) {
   const wrap = document.getElementById('po-items-wrap-' + poId);
   if (!wrap) return;
@@ -1960,7 +1959,14 @@ async function loadPOItems(poId) {
     const po = _pos.find(p => p.poId === poId);
     const items = await api('getPOItems', { poId });
     if (!items.length) {
-      wrap.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px 0;">No items found</div>`;
+      wrap.innerHTML = `
+        <div style="color:var(--muted);font-size:12px;padding:8px 0;">No items found</div>
+        ${po && po.status !== 'Completed' && po.status !== 'Cancelled' ? `
+          <div style="margin-top:12px;">
+            <button class="btn bg bsm" onclick="openAddPOItemModal('${poId}')">+ Add Item</button>
+          </div>
+        ` : ''}
+      `;
       return;
     }
 
@@ -2013,6 +2019,11 @@ async function loadPOItems(poId) {
           }).join('')}
         </tbody>
       </table>
+      ${po && po.status !== 'Completed' && po.status !== 'Cancelled' ? `
+        <div style="margin-top:12px;padding-bottom:4px;">
+          <button class="btn bg bsm" onclick="openAddPOItemModal('${poId}')">+ Add Item</button>
+        </div>
+      ` : ''}
     `;
   } catch(e) {
     if (wrap) wrap.innerHTML = `<div style="color:var(--red);font-size:12px;padding:8px 0;">Error: ${e.message}</div>`;
