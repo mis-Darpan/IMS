@@ -2977,18 +2977,34 @@ function addManualPORow() {
   const container = document.getElementById('po-manual-rows');
   if (!container) return;
   const idx = container.children.length;
-  const items = _stocks.length ? _stocks.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '';
+  const catOpts = _config.catOrder.map(c => `<option value="${c}">${c}</option>`).join('');
   const row = document.createElement('div');
-  row.style.cssText = 'display:grid;grid-template-columns:2fr 80px 36px;gap:8px;margin-bottom:8px;align-items:center;';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 80px 36px;gap:8px;margin-bottom:8px;align-items:center;';
   row.innerHTML = `
+    <select class="inp" id="po-manual-cat-${idx}" style="font-size:12px;" onchange="filterManualPOItems(${idx})">
+      <option value="">-- Category --</option>
+      ${catOpts}
+    </select>
     <select class="inp" id="po-manual-item-${idx}" style="font-size:12px;">
-      <option value="">-- Select Item --</option>
-      ${items}
+      <option value="">-- Select Category first --</option>
     </select>
     <input type="number" class="inp" id="po-manual-qty-${idx}" placeholder="Qty" min="1" style="font-size:12px;text-align:center;">
     <button class="btn brd bsm" onclick="this.parentElement.remove()" style="padding:5px 8px;">✕</button>
   `;
   container.appendChild(row);
+}
+
+function filterManualPOItems(idx) {
+  const cat = document.getElementById('po-manual-cat-'+idx).value;
+  const sel = document.getElementById('po-manual-item-'+idx);
+  sel.innerHTML = '<option value="">-- Select Item --</option>';
+  if (!cat) return;
+  const src = _stocks.length ? _stocks : _items;
+  src.filter(s => s.cat === cat).forEach(s => {
+    const o = document.createElement('option');
+    o.value = s.name; o.textContent = s.name;
+    sel.appendChild(o);
+  });
 }
 let _sbOutData = [];
 
