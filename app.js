@@ -2061,7 +2061,7 @@ async function printPOById(poId, supplier, expDate) {
   try {
     const items = await api('getPOItems', { poId });
     const poItems = items.map(i => ({ itemName: i.itemName, qty: i.orderedQty, unit: i.unit }));
-    printPO(poItems, supplier, expDate);
+    printPO(poItems, supplier, expDate, poId);
   } catch(e) { toast(e.message, 'err'); }
 }
 
@@ -2456,7 +2456,7 @@ function renderSbOut() {
 }
 
 // ── PO PRINT ──
-function printPO(items, supplier, expDate) {
+function printPO(items, supplier, expDate, poId) {
   const catOrder = _config.catOrder || [];
   const sorted = [...items].sort((a, b) => {
     const sa = _stocks.find(s => s.name === a.itemName);
@@ -2482,7 +2482,7 @@ function printPO(items, supplier, expDate) {
     'Box':'📦','Wire':'🔩','Consumables':'🧰','Tools':'🔧','Packaging':'📦'
   };
 
-  const poNumber = 'PO-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*900+100);
+  const poNumber = poId || ('PO-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.floor(Math.random()*900+100));
   const dateStr  = new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
 
   let itemsHTML = '';
