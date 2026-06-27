@@ -1,9 +1,7 @@
 /* ============================================================
    Litpax IMS Agent — agent.css
-   Floating chatbot button + popup
    ============================================================ */
 
-/* ── FAB BUTTON ── */
 #ims-fab {
   position: fixed;
   bottom: 24px;
@@ -21,29 +19,15 @@
   border: none;
   transition: transform .2s, box-shadow .2s;
 }
-#ims-fab:hover {
-  transform: scale(1.08);
-  box-shadow: 0 6px 22px rgba(0,0,0,0.35);
-}
+#ims-fab:hover { transform: scale(1.08); box-shadow: 0 6px 22px rgba(0,0,0,0.35); }
 #ims-fab .fab-logo {
-  width: 30px;
-  height: 30px;
+  width: 30px; height: 30px;
   background: #1D9E75;
   border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 15px;
-  font-weight: 800;
-  color: #fff;
-  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 800; color: #fff;
 }
-#ims-fab .fab-x {
-  display: none;
-  font-size: 22px;
-  color: #fff;
-  line-height: 1;
-}
+#ims-fab .fab-x { display: none; font-size: 22px; color: #fff; line-height: 1; }
 #ims-fab.open .fab-logo { display: none; }
 #ims-fab.open .fab-x    { display: block; }
 
@@ -66,6 +50,7 @@
   pointer-events: none;
   transform: scale(0.92) translateY(14px);
   transition: opacity .2s ease, transform .2s ease;
+  font-family: 'DM Sans', sans-serif;
 }
 #ims-popup.open {
   opacity: 1;
@@ -83,28 +68,20 @@
   flex-shrink: 0;
 }
 #ims-head .h-logo {
-  width: 26px;
-  height: 26px;
+  width: 26px; height: 26px;
   background: #1D9E75;
   border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 800;
-  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #fff;
   flex-shrink: 0;
 }
 #ims-head .h-name { font-size: 13px; font-weight: 700; color: #fff; }
 #ims-head .h-sub  { font-size: 10px; color: rgba(255,255,255,.4); }
 
 #ims-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  width: 7px; height: 7px; border-radius: 50%;
   background: #f59e0b;
-  margin-left: auto;
-  flex-shrink: 0;
+  margin-left: auto; flex-shrink: 0;
   transition: background .3s, box-shadow .3s;
 }
 #ims-dot.on  { background: #1D9E75; box-shadow: 0 0 6px #1D9E75; }
@@ -123,16 +100,16 @@
 #ims-msgs::-webkit-scrollbar { width: 4px; }
 #ims-msgs::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
 
-.im {
+#ims-msgs .ims-msg {
   display: flex;
   flex-direction: column;
   max-width: 86%;
   gap: 2px;
 }
-.im.u { align-self: flex-end; align-items: flex-end; }
-.im.b { align-self: flex-start; align-items: flex-start; }
+#ims-msgs .ims-msg.u { align-self: flex-end; align-items: flex-end; }
+#ims-msgs .ims-msg.b { align-self: flex-start; align-items: flex-start; }
 
-.ib {
+#ims-msgs .ims-bubble {
   padding: 8px 12px;
   border-radius: 12px;
   font-size: 12.5px;
@@ -141,22 +118,22 @@
   word-break: break-word;
   font-family: 'DM Sans', sans-serif;
 }
-.im.u .ib {
+#ims-msgs .ims-msg.u .ims-bubble {
   background: #0d1f3c;
   color: #fff;
   border-bottom-right-radius: 3px;
 }
-.im.b .ib {
+#ims-msgs .ims-msg.b .ims-bubble {
   background: #fff;
   border: 1px solid #e5e7eb;
   color: #1f2937;
   border-bottom-left-radius: 3px;
 }
-.im.b .ib.loading {
+#ims-msgs .ims-msg.b .ims-bubble.loading {
   color: #9ca3af;
   font-style: italic;
 }
-.its {
+#ims-msgs .ims-ts {
   font-size: 10px;
   color: #9ca3af;
   padding: 0 3px;
@@ -172,7 +149,7 @@
   border-top: 1px solid #f3f4f6;
   flex-shrink: 0;
 }
-.ic {
+#ims-chips .ims-chip {
   font-size: 11px;
   padding: 3px 9px;
   border: 1px solid #e5e7eb;
@@ -184,7 +161,7 @@
   white-space: nowrap;
   font-family: 'DM Sans', sans-serif;
 }
-.ic:hover {
+#ims-chips .ims-chip:hover {
   background: #0d1f3c;
   color: #fff;
   border-color: #0d1f3c;
@@ -211,10 +188,7 @@
   background: #f9fafb;
   transition: border-color .12s;
 }
-#ims-inp:focus {
-  border-color: #0d1f3c;
-  background: #fff;
-}
+#ims-inp:focus { border-color: #0d1f3c; background: #fff; }
 #ims-send {
   padding: 8px 14px;
   background: #0d1f3c;
