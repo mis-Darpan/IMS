@@ -3,7 +3,7 @@
 // GAS-powered, no external API needed
 // ============================================================
 
-const IMS_API = 'https://script.google.com/macros/s/AKfycbwZIb1KolVqxlqO8NsTsqx3j6wJ4juHows43Kb1vGxGkX45eyxNTMEriw4tgZN_RNGP/exec';
+const IMS_API = 'https://script.google.com/macros/s/AKfycbzyfxO3CqB2ot24-iohidaP_FjInFfx9Qup8MUqY14cNu7IyAqbqsh-emXi865_bQjT/exec';
 
 let _imsOpen    = false;
 let _imsLoading = false;
