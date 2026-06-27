@@ -1,5 +1,5 @@
 // ============================================================
-// Litpax IMS Agent — agent.js v2 (Smart + Dynamic)
+// Litpax IMS Agent — agent.js v3
 // ============================================================
 
 const IMS_API = 'https://script.google.com/macros/s/AKfycbwZIb1KolVqxlqO8NsTsqx3j6wJ4juHows43Kb1vGxGkX45eyxNTMEriw4tgZN_RNGP/exec';
@@ -7,7 +7,6 @@ const IMS_API = 'https://script.google.com/macros/s/AKfycbwZIb1KolVqxlqO8NsTsqx3
 let _imsOpen    = false;
 let _imsLoading = false;
 
-// ── TOGGLE ──
 function imsToggle() {
   _imsOpen = !_imsOpen;
   document.getElementById('ims-fab').classList.toggle('open', _imsOpen);
@@ -18,7 +17,6 @@ function imsToggle() {
   }
 }
 
-// ── RESET on every open ──
 function imsResetChat() {
   document.getElementById('ims-msgs').innerHTML = `
     <div class="ims-msg b">
@@ -31,7 +29,6 @@ function imsTs() {
   return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 }
 
-// ── ADD plain text message ──
 function imsAddMsg(html, role, loading) {
   const wrap = document.getElementById('ims-msgs');
   const d = document.createElement('div');
@@ -42,35 +39,57 @@ function imsAddMsg(html, role, loading) {
   return d;
 }
 
-// ── RENDER structured response ──
+function imsGetIcon(cat) {
+  const icons = {
+    'Cells':'🔋','BMS':'⚡','Charger':'🔌','Nickel/Busbar':'🪙',
+    'Box':'📦','Wire':'🔩','Consumables':'🧰','Tools':'🔧','Packaging':'📦'
+  };
+  return icons[cat] || '📦';
+}
+
 function imsRender(data) {
   const wrap = document.getElementById('ims-msgs');
   const d = document.createElement('div');
   d.className = 'ims-msg b';
 
-  let html = `<div class="ims-bubble ims-card">`;
-  html += `<div class="ims-card-title">${data.reply}</div>`;
+  // ── agar sirf plain reply hai (purana GAS format) ──
+  if (!data.type && data.reply) {
+    d.innerHTML = `<div class="ims-bubble">${data.reply}</div><div class="ims-ts">${imsTs()}</div>`;
+    wrap.appendChild(d);
+    wrap.scrollTop = wrap.scrollHeight;
+    return;
+  }
 
-  // CATEGORIES — clickable buttons
+  // ── agar error aaya ──
+  if (data.error) {
+    d.innerHTML = `<div class="ims-bubble" style="color:#dc2626;">⚠️ ${data.error}</div><div class="ims-ts">${imsTs()}</div>`;
+    wrap.appendChild(d);
+    wrap.scrollTop = wrap.scrollHeight;
+    return;
+  }
+
+  let html = `<div class="ims-bubble ims-card">`;
+  html += `<div class="ims-card-title">${data.reply || ''}</div>`;
+
+  // CATEGORIES
   if (data.type === 'categories') {
     html += `<div class="ims-btn-grid">`;
     (data.categories || []).forEach(c => {
-      const icon = imsGetIcon(c.name);
       const alertBadge = c.alerts > 0 ? `<span class="ims-alert-dot">${c.alerts}</span>` : '';
       html += `<button class="ims-cat-btn" onclick="imsAsk('${c.name} stock dikhao')">
-        ${icon} ${c.name} ${alertBadge}
+        ${imsGetIcon(c.name)} ${c.name} ${alertBadge}
         <span class="ims-cat-sub">${c.total} items</span>
       </button>`;
     });
     html += `</div>`;
   }
 
-  // MODELS — list with click
+  // MODELS
   else if (data.type === 'models') {
     html += `<div class="ims-model-list">`;
     (data.models || []).forEach(m => {
       const stIcon = m.status === 'Critical' ? '🔴' : m.status === 'Reorder' ? '⚠️' : '✅';
-      html += `<button class="ims-model-row" onclick="imsAskParam('${m.name.replace(/'/g,"\\'")}')">
+      html += `<button class="ims-model-row" onclick="imsAskParam('${m.name.replace(/'/g,"\\'").replace(/"/g,'\\"')}')">
         <span class="ims-model-name">${m.name}</span>
         <span class="ims-model-stock">${stIcon} ${m.stock}</span>
       </button>`;
@@ -78,7 +97,7 @@ function imsRender(data) {
     html += `</div>`;
   }
 
-  // DETAIL — single item
+  // DETAIL
   else if (data.type === 'detail') {
     const det = data.detail || {};
     const stColor = det.status === 'Critical' ? '#dc2626' : det.status === 'Reorder' ? '#f59e0b' : '#1D9E75';
@@ -93,14 +112,14 @@ function imsRender(data) {
     </div>`;
   }
 
-  // REORDER — critical + reorder lists
+  // REORDER
   else if (data.type === 'reorder') {
     if ((data.critical||[]).length) {
       html += `<div class="ims-section-label">🔴 Critical</div>`;
       (data.critical||[]).forEach(s => {
         html += `<button class="ims-model-row" onclick="imsAskParam('${s.name.replace(/'/g,"\\'")}')">
           <span class="ims-model-name">${s.name}</span>
-          <span class="ims-model-stock" style="color:#dc2626">${s.stock} → Order: ${s.order}</span>
+          <span class="ims-model-stock" style="color:#dc2626">${s.stock} → ${s.order}</span>
         </button>`;
       });
     }
@@ -109,19 +128,19 @@ function imsRender(data) {
       (data.reorder||[]).forEach(s => {
         html += `<button class="ims-model-row" onclick="imsAskParam('${s.name.replace(/'/g,"\\'")}')">
           <span class="ims-model-name">${s.name}</span>
-          <span class="ims-model-stock" style="color:#f59e0b">${s.stock} → Order: ${s.order}</span>
+          <span class="ims-model-stock" style="color:#f59e0b">${s.stock} → ${s.order}</span>
         </button>`;
       });
     }
   }
 
-  // LIST — inward/outward/wip/dispatch/requests/po
+  // LIST
   else if (data.type === 'list') {
     html += `<div class="ims-simple-list">`;
     (data.items||[]).forEach(i => {
       html += `<div class="ims-list-row">
         <div class="ims-list-name">${i.name}</div>
-        <div class="ims-list-meta"><b>${i.qty}</b> <span>${i.note}</span></div>
+        <div class="ims-list-meta"><b>${i.qty}</b><span>${i.note}</span></div>
       </div>`;
     });
     html += `</div>`;
@@ -153,9 +172,9 @@ function imsRender(data) {
     html += `</div>`;
   }
 
-  // plain text
+  // fallback
   else {
-    html += `<div style="font-size:12.5px;margin-top:6px;">${data.reply}</div>`;
+    html += `<div style="font-size:12.5px;margin-top:4px;">${data.reply || JSON.stringify(data)}</div>`;
   }
 
   html += `</div><div class="ims-ts">${imsTs()}</div>`;
@@ -164,22 +183,11 @@ function imsRender(data) {
   wrap.scrollTop = wrap.scrollHeight;
 }
 
-// ── ICON helper ──
-function imsGetIcon(cat) {
-  const icons = {
-    'Cells':'🔋','BMS':'⚡','Charger':'🔌','Nickel/Busbar':'🪙',
-    'Box':'📦','Wire':'🔩','Consumables':'🧰','Tools':'🔧','Packaging':'📦'
-  };
-  return icons[cat] || '📦';
-}
-
-// ── QUICK ASK ──
 function imsAsk(q) {
   document.getElementById('ims-inp').value = q;
   imsSend();
 }
 
-// ── PARAM ASK (model click) ──
 function imsAskParam(itemName) {
   imsAddMsg(itemName, 'user');
   const loadEl = imsAddMsg('Dekh raha hoon...', 'bot', true);
@@ -189,19 +197,18 @@ function imsAskParam(itemName) {
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ action: 'askAgent', question: itemName, param: itemName })
   })
-  .then(r => r.text()).then(t => {
-    const data = JSON.parse(t);
+  .then(r => r.text())
+  .then(t => {
     loadEl.remove();
-    imsRender(data);
+    imsRender(JSON.parse(t));
   })
-  .catch(() => {
-    loadEl.querySelector('.ims-bubble').textContent = 'Error — dobara try karo.';
+  .catch(e => {
+    loadEl.querySelector('.ims-bubble').textContent = 'Error: ' + e.message;
     loadEl.querySelector('.ims-bubble').classList.remove('loading');
   })
   .finally(() => { _imsLoading = false; });
 }
 
-// ── MAIN SEND ──
 async function imsSend() {
   const q = document.getElementById('ims-inp').value.trim();
   if (!q || _imsLoading) return;
@@ -219,11 +226,12 @@ async function imsSend() {
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({ action: 'askAgent', question: q })
     });
-    const data = JSON.parse(await res.text());
+    const text = await res.text();
+    const data = JSON.parse(text);
     loadEl.remove();
     imsRender(data);
   } catch(e) {
-    loadEl.querySelector('.ims-bubble').textContent = 'Network error — dobara try karo.';
+    loadEl.querySelector('.ims-bubble').textContent = 'Error: ' + e.message;
     loadEl.querySelector('.ims-bubble').classList.remove('loading');
   }
 
