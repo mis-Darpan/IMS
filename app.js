@@ -3,7 +3,7 @@
 // API URL: change here if redeployed
 // ============================================================
 
-const API = 'https://script.google.com/macros/s/AKfycbzMrVtI2s4eD1Cox19AnKyiWh-bU55DvID5rFUg7nJCFHbti-kuAZrezBS9l77nKbI/exec';
+const API = 'https://script.google.com/macros/s/AKfycbyoBK8mh_dn4I3FLQb9fGymzb301p-zWRg5DFuxkLDAq7u4RpSpGdcBMMw4alqK2_n1/exec';
 
 function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
 function showEl(id, show) { const el = document.getElementById(id); if (el) el.style.display = show ? 'inline' : 'none'; }
@@ -11,12 +11,13 @@ function showEl(id, show) { const el = document.getElementById(id); if (el) el.s
 const DEPTS = ['Volt Wing','Ampere Wing','Volt x Ampere Wing','Mega Grid','Cathodic Wing','Future Cell','Phoenix Wing','Other'];
 
 // ── ROLES & PINS ──
+// PINs ab yahan NAHI hain — backend verify karta hai (source me kuch nahi dikhta)
 const ROLES = {
-  admin:   { pin: '4321', name: 'Admin',   homePage: 'dashboard',    pages: ['dashboard','inward','outward','dispatch','wip','requests','items','opening','bom','indent','stock','reorder','closing','adc','ledger'] },
-  ajay:    { pin: '0001', name: 'Ajay',    homePage: 'ajay-dash',    pages: ['ajay-dash','inward','outward','requests','items','opening','bom','indent','stock','reorder'] },
-  sandeep: { pin: '0002', name: 'Nishant', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','received','wip','stock','items','bom'] },
-  purchase:  { pin: '1111', name: 'Purchase',  redirect: 'https://litpax-technology.github.io/SOMS/?pin=1111' },
-  transport: { pin: '2222', name: 'Transport', redirect: 'https://litpax-technology.github.io/SOMS/?pin=2222' },
+  admin:   { name: 'Admin',   homePage: 'dashboard',    pages: ['dashboard','inward','outward','dispatch','wip','requests','items','opening','bom','indent','stock','reorder','closing','adc','ledger'] },
+  ajay:    { name: 'Ajay',    homePage: 'ajay-dash',    pages: ['ajay-dash','inward','outward','requests','items','opening','bom','indent','stock','reorder'] },
+  sandeep: { name: 'Nishant', homePage: 'sandeep-dash', pages: ['sandeep-dash','dispatch','received','wip','stock','items','bom'] },
+  purchase:  { name: 'Purchase',  redirect: 'https://litpax-technology.github.io/SOMS/?pin=1111' },
+  transport: { name: 'Transport', redirect: 'https://litpax-technology.github.io/SOMS/?pin=2222' },
 };
 
 let _currentRole = null;
@@ -35,7 +36,7 @@ let _pinAttempts = 0;
 let _pinLocked   = false;
 let _lockTimer   = null;
 
-function doLogin() {
+async function doLogin() {
   const pin = document.getElementById('login-pin').value;
   const err = document.getElementById('login-err');
 
@@ -51,7 +52,27 @@ function doLogin() {
     return;
   }
 
-  if (pin !== ROLES[_selectedRole].pin) {
+  // Redirect roles (Purchase/Transport) — SOMS ka apna login, yahan verify nahi
+  if (ROLES[_selectedRole].redirect) {
+    window.location.href = ROLES[_selectedRole].redirect;
+    return;
+  }
+
+  const btn = document.querySelector('.login-btn');
+  if (btn) { btn.disabled = true; btn.style.opacity = '0.6'; }
+
+  let res;
+  try {
+    res = await api('login', { role: _selectedRole, pin });   // ← backend verify
+  } catch (e) {
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+    err.style.display = 'block';
+    err.textContent = '⚠ Server busy — dobara try karo';
+    return;
+  }
+  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+
+  if (!res || !res.ok) {
     _pinAttempts++;
     document.getElementById('login-pin').value = '';
 
@@ -78,18 +99,13 @@ function doLogin() {
     return;
   }
 
-  // Correct PIN
+  // Correct PIN ✓
   _pinAttempts = 0;
   _pinLocked   = false;
   clearInterval(_lockTimer);
-  _currentRole = _selectedRole;
-  // Redirect roles (SOMS)
-  if (ROLES[_currentRole].redirect) {
-    window.location.href = ROLES[_currentRole].redirect;
-    return;
-  }
+  _currentRole = res.role;
   sessionStorage.setItem('lpx_role', _currentRole);
-  sessionStorage.setItem('lpx_name', ROLES[_currentRole].name);
+  sessionStorage.setItem('lpx_name', res.name || (ROLES[_currentRole]||{}).name || '');
   showApp();
 }
 
@@ -934,15 +950,7 @@ const CAT_UNITS  = new Proxy({}, { get: (_, k) => _config.catUnits[k] });
 async function loadConfig() {
   try {
     const cfg = await api('getConfig');
-    if (cfg && cfg.categories && cfg.categories.length) {
-      _config = cfg;
-    }
-    if (cfg && cfg.roles) {
-      Object.keys(cfg.roles).forEach(role => {
-        if (ROLES[role]) ROLES[role].pin = cfg.roles[role];
-      });
-    }
-    applyConfigToUI();
+applyConfigToUI();
   } catch(e) {
     applyConfigToUI();
   }
